@@ -1,15 +1,19 @@
 #include "MainComponent.h"
-
 //==============================================================================
 MainComponent::MainComponent()
 {
-    dogs.setBounds(0,0,100,30);
-    addAndMakeVisible (&dogs);
-    
     this->setLookAndFeel (&otherLookAndFeel);
     
     midiOut = juce::MidiOutput::openDevice (juce::MidiOutput::getDefaultDevice().identifier);
-    setSize (600, 400);
+    
+    for (int i = 0; i < 8; i++)
+    {
+        MidiKnob * tmp = new MidiKnob (midiOut);
+        knobs.push_back (tmp);
+        addAndMakeVisible (*tmp);
+    }
+    
+    setSize (400, 800);
     addAndMakeVisible (midiOutputList);
     midiOutputList.setTextWhenNoChoicesAvailable ("No MIDI Inputs Enabled");
     auto midiOutputs = juce::MidiOutput::getAvailableDevices ();
@@ -24,25 +28,10 @@ MainComponent::MainComponent()
     if (midiOutputList.getSelectedId() == 0)
         setMidiOutput (0);
     
-    //setOpaque (true);
-    auto * slider = new juce::Slider ();
-    slider->setSliderStyle (juce::Slider::SliderStyle::Rotary);
-    slider->setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
-    slider->setBounds (40, 40, 40, 40);
-    addAndMakeVisible (*slider);
-    slider->setRange (juce::Range<double>(0.0, 127.0), 1.0);
+    addAndMakeVisible (matrix);
     
-    slider->onValueChange = [this, slider]
-    {
-        int x = round(slider->getValue());
-        auto msg = juce::MidiMessage::controllerEvent (1, 7, x);
-        midiOut->sendMessageNow (msg);
-    };
-    
-    knobs.push_back (slider);
     
     resized();
-    
 }
 
 
@@ -62,8 +51,8 @@ MainComponent::~MainComponent()
         delete (i);
     }
     knobs.clear ();
+    //delete (midiOut);
     setLookAndFeel (nullptr);
-    
 }
 
 //==============================================================================
@@ -81,12 +70,17 @@ void MainComponent::resized ()
 {
     auto area = getLocalBounds ();
     midiOutputList.setBounds (area.removeFromTop (36).reduced (8));
-    auto area2 = area.removeFromTop (100);
-    for (auto i : knobs)
+    auto lowerarea2 = area.removeFromTop (300);
+    auto upperarea2 = lowerarea2.removeFromTop (150);
+    for (int i = 0; i < 4; i++)
     {
-        i->setBounds (area2.removeFromLeft (100).reduced (8));
+        knobs [i]->setBounds (upperarea2.removeFromLeft (100).reduced (8, 8) );
     }
-    dogs.setBounds (area.removeFromTop (300). removeFromLeft(150));
+    for (int i = 4; i < 8; i++)
+    {
+        knobs [i]->setBounds (lowerarea2.removeFromLeft (100).reduced (8, 8) );
+    }
+    matrix.setBounds (area.reduced (8, 8));
     // This is called when the MainComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.

@@ -3,6 +3,8 @@
 #include <JuceHeader.h>
 #include "OtherLookAndFeel.h"
 #include "ScrollableNumber.h"
+#include "MidiKnob.h"
+#include "BackendAlgebra.h"
 
 //==============================================================================
 /*
@@ -24,15 +26,11 @@ public:
 private:
     //==============================================================================
     // Your private member variables go here...
-    std::unique_ptr<juce::MidiOutput> midiOut;
-    juce::AudioDeviceManager deviceManager;
+    std::shared_ptr<juce::MidiOutput> midiOut;
     juce::ComboBox midiOutputList;
-    std::vector<juce::Slider * > knobs;
-    
+    std::vector<MidiKnob * > knobs;
     OtherLookAndFeel otherLookAndFeel;
-    
-    ScrollableNumber dogs{1, 127};
-    
+    MatrixField matrix {};
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

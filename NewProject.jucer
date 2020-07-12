@@ -4,6 +4,9 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1">
   <MAINGROUP id="pg2mq6" name="NewProject">
     <GROUP id="{72670E66-FD81-D5D7-18D0-ED516248A196}" name="Source">
+      <FILE id="q9MMfR" name="BackendAlgebra.h" compile="0" resource="0"
+            file="Source/BackendAlgebra.h"/>
+      <FILE id="niCDjD" name="MidiKnob.h" compile="0" resource="0" file="Source/MidiKnob.h"/>
       <FILE id="lOO8o1" name="ScrollableNumber.h" compile="0" resource="0"
             file="Source/ScrollableNumber.h"/>
       <FILE id="FgYSWV" name="OtherLookAndFeel.h" compile="0" resource="0"
@@ -18,8 +21,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="NewProject"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="NewProject"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/Xtensor"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/Xtensor"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
