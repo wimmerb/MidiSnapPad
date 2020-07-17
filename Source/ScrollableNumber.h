@@ -16,69 +16,112 @@ class ScrollableNumber  : public juce::Component, juce::AnimatedPosition<juce::A
 {
 public:
     //==============================================================================
-    ScrollableNumber(int begin, int end, int initValue)
+    ScrollableNumber(int begin, int end, int initValue, juce::String name)
     {
         //setOpaque(true);
         this->begin = begin;
         this->end   = end;
         this->value = std::max (begin, std::min (end, initValue));
+        this->name = name;
+        
         animator.addListener(this);
         animator.setLimits(juce::Range<double> (begin - 1, end));
         animator.behaviour.setFriction (0.1);
-        animator.behaviour.setMinimumVelocity (3.0);
+        animator.behaviour.setMinimumVelocity (1.0);
+        
+        setVisible (false);
     }
     
     //==============================================================================
     void paint (juce::Graphics& g) override
     {
-        juce::Rectangle <float> bounds = getLocalBounds().reduced(0.5f, 0.5f).toFloat();
+        
+        juce::Rectangle <float> bounds = getLocalBounds().toFloat().reduced (0.5f);
+        float cornerSize = 3.0f;
+        
+        //name display==================================================================
+        g.setColour (juce::Colours::white);
+        g.drawText(name, bounds.removeFromBottom (0.3f * bounds.getHeight () ), juce::Justification::centredBottom);
+        
+        //background==================================================================
         g.setColour (juce::Colour (0x353130).interpolatedWith (juce::Colours::white, 0.3) );
-        g.fillRoundedRectangle (bounds, 1.0f);
+        g.fillRoundedRectangle (bounds, cornerSize);
         
-        juce::Path p;
-        p.addRoundedRectangle (bounds, 1.0f);
-        g.setColour (juce::Colour::fromRGBA(0, 0, 0, 20));
-        
-        for (int i = 0; i < 3; i++)
-        {
-            g.strokePath (p, juce::PathStrokeType (2.0f), juce::AffineTransform::translation (i * 1.0f, i * 1.0f) );
-        }
-        
-        
-        
+        //Number text==================================================================
         g.setColour (juce::Colours::white);
         g.drawText (assignValueText (value), bounds, juce::Justification::centred);
         
-        g.setColour (juce::Colours::white.withAlpha (0.5f) );
-        g.drawText (assignValueText (value+1), bounds.getX (), bounds.getY () - 8.0f, bounds.getWidth (), bounds.getHeight (), juce::Justification::centredTop);
-        g.drawText (assignValueText (value-1), bounds.getX (), bounds.getY () + bounds.getHeight () - 8.0f, bounds.getWidth (), bounds.getHeight (), juce::Justification::centredTop);
         
+        float fontHeight = g.getCurrentFont().getHeight();
+        g.setColour (juce::Colours::white.withAlpha (0.3f) );
+        
+        float hiddenTextOffset = bounds.getHeight () / 30.0f / 2.0f;
+        g.saveState ();
+        auto upperTextBounds = juce::Rectangle<float> (bounds.getX (), bounds.getY () + hiddenTextOffset, bounds.getWidth (), fontHeight );
+        g.addTransform (juce::AffineTransform::scale (1.0f, 0.7f, upperTextBounds.getCentre ().getX (), upperTextBounds.getCentre ().getY () ) );
+        g.drawText (assignValueText (value+1), upperTextBounds, juce::Justification::centredTop);
+        g.restoreState ();
+        
+        g.saveState ();
+        auto lowerTextBounds = juce::Rectangle<float> (bounds.getX (), bounds.getBottom () - fontHeight - hiddenTextOffset, bounds.getWidth (), fontHeight );
+        g.addTransform (juce::AffineTransform::scale (1.0f, 0.7f, lowerTextBounds.getCentre ().getX (), lowerTextBounds.getCentre ().getY () ) );
+        g.drawText (assignValueText (value-1), lowerTextBounds, juce::Justification::centredTop);
+        g.restoreState ();
+        
+        //borderShadow==================================================================
+        juce::Path p;
+        
+        //parameters for adaption see below, cs means cornersize for shadow!
+        float cs = std::min (cornerSize - 1.0f, std::min (bounds.getWidth (), bounds.getHeight () ) * 0.5f );
+        auto cs45 = cs * 0.45f;
+        float x = bounds.getX (), y = bounds.getY ();
+        
+        //p.addRoundedRectangle (bounds, 1.0f);
+        p.startNewSubPath (bounds.getX (), bounds.getBottom () - cs );
+        p.lineTo (bounds.getX (), y + cs );
+        
+        //adapted this snippet from addRoundedRectangle implementation in Path
+        //if (curveTopLeft)
+        //{
+        //    startNewSubPath (x, y + csy);
+        //    cubicTo (x, y + cs45y, x + cs45x, y, x + csx, y);
+        //}
+        
+        p.startNewSubPath (x, y + cs);
+        p.cubicTo (x, y + cs45, x + cs45, y, x + cs, y);
+        //end adaption
+        
+        p.lineTo (bounds.getRight () - 2.0f, bounds.getY () );
+        
+        for (int i = 2; i < 6; i++)
+        {
+            g.setColour (juce::Colour::fromRGBA(0, 0, 0, 30 - 5 * i));
+            g.strokePath (p, juce::PathStrokeType (2.0f, juce::PathStrokeType::JointStyle::curved, juce::PathStrokeType::EndCapStyle::butt), juce::AffineTransform::translation (i * 0.5f, i * 0.5f) );
+        }
+        
+        //border==================================================================
         g.setColour (findColour (juce::ComboBox::backgroundColourId) );
-        g.drawRoundedRectangle (bounds, 3.0f, 3.0f);
+        g.drawRoundedRectangle (bounds, cornerSize, 1.5f);
     }
     
     void mouseDown (const juce::MouseEvent &event) override
     {
+        
         animator.beginDrag();
     }
     
     void mouseUp (const juce::MouseEvent &event) override
     {
+        
         animator.endDrag();
     }
     
     void mouseDrag (const juce::MouseEvent &event) override
     {
+        
         auto deltaY = 0.08f * event.getDistanceFromDragStartY ();
         animator.drag (deltaY);
-        //value = std::round (deltaY);
-
-//        value -= std::round (deltaY * 0.1f);
-//        value = std::max (begin, std::min (value, end));
-//
-//        std::cout << value;
-//
-//        repaint();
+        
     }
     void positionChanged (juce::AnimatedPosition <juce::AnimatedPositionBehaviours::ContinuousWithMomentum> & aniPos, double newPosition) override
     {
@@ -93,6 +136,12 @@ public:
         else
             return value;
     }
+    
+    void toggleEdit ()
+    {
+        setVisible( !isVisible () );
+        repaint ();
+    }
 private:
     
     juce::String assignValueText (int value)
@@ -104,6 +153,8 @@ private:
         else
             return juce::String (std::to_string (value) );
     }
+    
+    juce::String name {};
     
     int begin;
     int end;

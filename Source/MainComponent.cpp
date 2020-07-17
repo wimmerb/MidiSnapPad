@@ -2,6 +2,24 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
+    addAndMakeVisible (textMan);
+    //IDEE: algebraisches Zeug in dieser Komponente
+    editModeToggle = new juce::Slider ();
+    editModeToggle->setSliderStyle (juce::Slider::SliderStyle::LinearHorizontal);
+    editModeToggle->setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
+    editModeToggle->setRange (juce::Range<double>(0.0, 1.0), 1.0);
+    addAndMakeVisible(*editModeToggle);
+    
+    editModeToggle->onValueChange = [&]
+    {
+        matrix.toggleEdit ();
+        for (auto i : knobs)
+        {
+            i->toggleEdit ();
+        }
+    };
+    
+    
     this->setLookAndFeel (&otherLookAndFeel);
     
     midiOut = juce::MidiOutput::openDevice (juce::MidiOutput::getDefaultDevice().identifier);
@@ -52,7 +70,11 @@ MainComponent::~MainComponent()
     }
     knobs.clear ();
     //delete (midiOut);
+    
+    delete (editModeToggle);
+    
     setLookAndFeel (nullptr);
+    
 }
 
 //==============================================================================
@@ -69,6 +91,7 @@ void MainComponent::paint (juce::Graphics& g)
 void MainComponent::resized ()
 {
     auto area = getLocalBounds ();
+    textMan.setBounds (area.removeFromTop (40));
     midiOutputList.setBounds (area.removeFromTop (36).reduced (8));
     auto lowerarea2 = area.removeFromTop (300);
     auto upperarea2 = lowerarea2.removeFromTop (150);
@@ -80,7 +103,9 @@ void MainComponent::resized ()
     {
         knobs [i]->setBounds (lowerarea2.removeFromLeft (100).reduced (8, 8) );
     }
-    matrix.setBounds (area.reduced (8, 8));
+    matrix.setBounds (area.removeFromTop (300). reduced (8, 8) );
+    editModeToggle->setBounds (area );
+    
     // This is called when the MainComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.

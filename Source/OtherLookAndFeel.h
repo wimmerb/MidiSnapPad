@@ -113,5 +113,77 @@ public:
         
         
     }
+    
+    void drawLinearSlider (juce::Graphics& g, int x, int y, int width, int height,
+                           float sliderPos, float minSliderPos, float maxSliderPos,
+                           const juce::Slider::SliderStyle style, juce::Slider& slider) override
+    {
+        
+        if (style != juce::Slider::LinearHorizontal)
+        {
+            juce::LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
+            return;
+        }
+        
+        auto bounds = juce::Rectangle<int> (x, y, width, height). reduced (4);
+        
+        float strokePathThickness = 2.0f;
+        float roundedRectangleCornerSize = 6.0f;
+        juce::Colour backgroundColour = findColour (juce::ComboBox::backgroundColourId);
+        juce::Colour greyTone = juce::Colour(0x353130).interpolatedWith (juce::Colours::white, 0.4f);
+        juce::Colour whiteTone = juce::Colour(0x353130).interpolatedWith (juce::Colours::white, 0.5f);
+        juce::Colour shadowTone = juce::Colour::fromRGBA(0, 0, 0, 40);
+        
+        juce::Path p;
+        p.addRoundedRectangle (bounds, roundedRectangleCornerSize);
+        
+        g.setColour (backgroundColour);
+        //g.fillPath (p);
+        
+        g.setColour (whiteTone);
+        g.strokePath (p, juce::PathStrokeType (strokePathThickness));
+        
+        
+        auto boundsLeft = bounds.removeFromLeft (width / 2). reduced (4);
+        auto boundsRight = bounds. reduced (4);
+//        g.setColour (juce::Colours::pink);
+//        g.fillRect (bounds);
+        
+        auto currentIndicatedBounds = boundsLeft;
+        if (sliderPos == x) //left option chosen
+            currentIndicatedBounds = boundsLeft;
+        if (sliderPos == x + width) //right option chosen
+            currentIndicatedBounds = boundsRight;
+        
+        p.clear ();
+        p.addRoundedRectangle (currentIndicatedBounds, roundedRectangleCornerSize - 2.0f);
+        
+        g.setColour(juce::Colour::fromRGBA(0, 0, 0, 20));
+        for (int i = 0; i < 3; i++)
+        {
+            g.fillPath (p, juce::AffineTransform::translation (i * 1.5f, i * 1.5f) );
+        }
+        
+        
+        g.setColour (juce::Colours::darkgrey);
+        g.fillPath (p);
+        
+        greyTone = juce::Colour(0x353130);
+        g.setGradientFill (juce::ColourGradient (whiteTone.interpolatedWith (greyTone, 0.1f),
+                                                 currentIndicatedBounds.getX () ,
+                                                 currentIndicatedBounds.getY () ,
+                                                 greyTone,
+                                                 currentIndicatedBounds.getX () + currentIndicatedBounds.getHeight () * currentIndicatedBounds.getHeight () / currentIndicatedBounds.getWidth () * 2.0f,
+                                                 currentIndicatedBounds.getY () + currentIndicatedBounds.getHeight () * 2.0f,
+                                                 false));
+        g.strokePath (p, juce::PathStrokeType (strokePathThickness - 0.5f));
+        
+        
+        g.setColour (juce::Colours::white);
+        g.drawText("Play", boundsLeft, juce::Justification::centred);
+        g.drawText("Edit", boundsRight, juce::Justification::centred);
+        
+        
+    }
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OtherLookAndFeel)
 };

@@ -21,8 +21,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/Xtensor"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/Xtensor"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/XTensor/xtl-master/include;&#10;~/MyProgramming/MyLibraries/XTensor/xtensor-master/include;&#10;~/MyProgramming/MyLibraries/xtensor-blas-master/include;"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/XTensor/xtl-master/include;&#10;~/MyProgramming/MyLibraries/XTensor/xtensor-master/include;&#10;~/MyProgramming/MyLibraries/xtensor-blas-master/include;"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
