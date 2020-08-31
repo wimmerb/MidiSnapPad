@@ -13,6 +13,7 @@
 #include <xtensor/xio.hpp>
 #include <xtensor/xview.hpp>
 #include <xtensor-blas/xlinalg.hpp>
+#include "MyTextEditor.h"
 
 class DraggableCursor : public juce::Component
 {
@@ -95,16 +96,12 @@ private:
 };
 
 template <typename ValueType>
-class MatrixFieldArea : public juce::TextEditor
+class MatrixFieldArea : public MyTextEditor
 {
 public:
-    MatrixFieldArea ()
+    MatrixFieldArea (juce::String param)
     {
-        TextEditor::setJustification (juce::Justification::centred);
-        setText ("jo");
-        setWantsKeyboardFocus(true);
-        setCaretVisible(false);
-        setReadOnly(true);
+        setText (param);
     }
     
     void setArea (juce::Rectangle<ValueType> newArea)
@@ -130,39 +127,43 @@ public:
         return representedSnapshotPosition.getDistanceFrom (other);
     }
     
-    void paint (juce::Graphics& g) override
-    {
-        auto bounds = getLocalBounds();
-
-        if (isInEditMode)
-        {
-            g.setColour (juce::Colours::pink.withAlpha (0.3f));
-            g.fillRect (bounds);
-        }
-
-//        g.setColour (juce::Colours::white);
-//        g.drawText(name, bounds, juce::Justification::centred);
-
-    }
+//    void paintOverChildren (juce::Graphics& g) override
+//    {}
+    
+//    void paint (juce::Graphics& g) override
+//    {
+//        auto bounds = getLocalBounds();
+//
+//        if (isInEditMode)
+//        {
+//            g.setColour (juce::Colours::pink.withAlpha (0.3f));
+//            g.fillRect (bounds);
+//        }
+//
+////        g.setColour (juce::Colours::white);
+////        g.drawText(name, bounds, juce::Justification::centred);
+//
+//    }
     
 //    void resized () override
 //    {
 //        repaint();
 //    }
 //
-    void mouseDown (const juce::MouseEvent& e) override
-    {
-        if (not isInEditMode)
-            return;
-        name = "click";
-        repaint();
-    }
+//    void mouseDown (const juce::MouseEvent& e) override
+//    {
+//        if (not isInEditMode)
+//            return;
+//        name = "click";
+//        repaint();
+//    }
     
-    void toggleEdit ()
-    {
-        isInEditMode = !isInEditMode;
-        setReadOnly (!isReadOnly ());
-    }
+    
+//    void toggleEdit ()
+//    {
+//        isInEditMode = !isInEditMode;
+//        setReadOnly (!isReadOnly ());
+//    }
     
     
     
@@ -170,9 +171,9 @@ public:
 private:
     juce::Rectangle<ValueType> area;
     juce::Point<ValueType> representedSnapshotPosition;
-    juce::String name = "Smooth";
+    //juce::String name = "Smooth";
     
-    bool isInEditMode {false};
+    //bool isInEditMode {false};
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MatrixFieldArea)
 };
@@ -323,14 +324,12 @@ public:
     
     void toggleEdit ()
     {
+        isInEditMode = !isInEditMode;
         for (auto i : matrixFieldAreas)
         {
-            i->toggleEdit ();
+            i->toggleEdit ( isInEditMode );
         }
         cursorField.toggleEdit ();
-        
-        isInEditMode = !isInEditMode;
-        
         repaint ();
     }
     
@@ -387,7 +386,7 @@ private:
             int nrMissingAreas = nrRows * nrColumns - (int) matrixFieldAreas.size ();
             for (int i = 0; i < nrMissingAreas; i++)
             {
-                matrixFieldAreas.push_back (new MatrixFieldArea<int> () );
+                matrixFieldAreas.push_back (new MatrixFieldArea<int> ("new mode") );
             }
         }
         //no else here: we want to keep "hidden" Fields, just keep the sizes right

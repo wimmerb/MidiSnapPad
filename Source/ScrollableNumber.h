@@ -21,13 +21,14 @@ public:
         //setOpaque(true);
         this->begin = begin;
         this->end   = end;
-        this->value = std::max (begin, std::min (end, initValue));
+        this->value = std::max (begin - 1, std::min (end, initValue));
         this->name = name;
         
         animator.addListener(this);
         animator.setLimits(juce::Range<double> (begin - 1, end));
         animator.behaviour.setFriction (0.1);
         animator.behaviour.setMinimumVelocity (1.0);
+        animator.setPosition (this->value);
         
         setVisible (false);
     }
@@ -41,7 +42,7 @@ public:
         
         //name display==================================================================
         g.setColour (juce::Colours::white);
-        g.drawText(name, bounds.removeFromBottom (0.3f * bounds.getHeight () ), juce::Justification::centredBottom);
+        g.drawText(name, bounds.removeFromBottom (0.3f * bounds.getHeight () ), juce::Justification::centred);
         
         //background==================================================================
         g.setColour (juce::Colour (0x353130).interpolatedWith (juce::Colours::white, 0.3) );
@@ -55,7 +56,9 @@ public:
         float fontHeight = g.getCurrentFont().getHeight();
         g.setColour (juce::Colours::white.withAlpha (0.3f) );
         
-        float hiddenTextOffset = bounds.getHeight () / 30.0f / 2.0f;
+        
+        //"hidden" Text vertically rescaled to get number roll feel
+        float hiddenTextOffset = bounds.getHeight () * 0.02f;
         g.saveState ();
         auto upperTextBounds = juce::Rectangle<float> (bounds.getX (), bounds.getY () + hiddenTextOffset, bounds.getWidth (), fontHeight );
         g.addTransform (juce::AffineTransform::scale (1.0f, 0.7f, upperTextBounds.getCentre ().getX (), upperTextBounds.getCentre ().getY () ) );
@@ -129,12 +132,12 @@ public:
         repaint();
     }
     
-    int getValue ()
+    int * getValue ()
     {
         if (value == begin - 1)
-            return NULL;
+            return nullptr;
         else
-            return value;
+            return new int (value);
     }
     
     void toggleEdit ()

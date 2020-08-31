@@ -32,7 +32,6 @@ private:
     OtherLookAndFeel otherLookAndFeel;
     MatrixField matrix {};
     juce::Slider * editModeToggle;
-    juce::TextEditor textMan {"jo"};
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

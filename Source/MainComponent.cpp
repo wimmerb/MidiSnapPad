@@ -2,14 +2,15 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-    addAndMakeVisible (textMan);
-    //IDEE: algebraisches Zeug in dieser Komponente
+    //IDEE: algebraisches Zeug in dieser Komponente. eher nein.
     editModeToggle = new juce::Slider ();
     editModeToggle->setSliderStyle (juce::Slider::SliderStyle::LinearHorizontal);
     editModeToggle->setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
     editModeToggle->setRange (juce::Range<double>(0.0, 1.0), 1.0);
     addAndMakeVisible(*editModeToggle);
     
+    
+    //TODO editmode speichern und so auch übergeben.
     editModeToggle->onValueChange = [&]
     {
         matrix.toggleEdit ();
@@ -91,7 +92,6 @@ void MainComponent::paint (juce::Graphics& g)
 void MainComponent::resized ()
 {
     auto area = getLocalBounds ();
-    textMan.setBounds (area.removeFromTop (40));
     midiOutputList.setBounds (area.removeFromTop (36).reduced (8));
     auto lowerarea2 = area.removeFromTop (300);
     auto upperarea2 = lowerarea2.removeFromTop (150);
