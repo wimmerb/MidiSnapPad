@@ -28,12 +28,12 @@ public:
         rotarySlider->setSliderStyle (juce::Slider::SliderStyle::Rotary);
         rotarySlider->setTextBoxStyle (juce::Slider::NoTextBox, true, 0, 0);
         rotarySlider->setRange (juce::Range<double>(0.0, 127.0), 1.0);
-        addAndMakeVisible (*rotarySlider);
+        addChildComponent (*rotarySlider);
         
         
         sliderTitle.setText ("param");
         
-        addAndMakeVisible (sliderTitle);
+        addChildComponent (sliderTitle);
         
         rotarySlider->onValueChange = [this] () mutable
         {
@@ -78,16 +78,16 @@ public:
         
     }
     
-    void toggleEdit ()
+    void toggleEdit (bool isInEditMode)
     {
-        isInEditMode = !isInEditMode;
+        this->isInEditMode = isInEditMode;
         
-        midiChannel.toggleEdit ();
-        midiControlChange.toggleEdit ();
+        midiChannel.toggleEdit (isInEditMode);
+        midiControlChange.toggleEdit (isInEditMode);
         
         
         
-        rotarySlider->setVisible ( !rotarySlider->isVisible () );
+        rotarySlider->setVisible ( !isInEditMode );
         sliderTitle.toggleEdit ( isInEditMode );
         std::cout << "jo" << std::endl;
         

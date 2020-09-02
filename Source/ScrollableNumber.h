@@ -30,7 +30,7 @@ public:
         animator.behaviour.setMinimumVelocity (1.0);
         animator.setPosition (this->value);
         
-        setVisible (false);
+        //setVisible (false);
     }
     
     //==============================================================================
@@ -140,9 +140,9 @@ public:
             return new int (value);
     }
     
-    void toggleEdit ()
+    void toggleEdit (bool isInEditMode)
     {
-        setVisible( !isVisible () );
+        setVisible ( isInEditMode );
         repaint ();
     }
 private:

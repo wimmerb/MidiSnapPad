@@ -42,7 +42,6 @@ public:
     MyTextEditor ()
     {
         addChildComponent (editor);
-        editor.setVisible (false);
         editor.onTextChange = [&]
         {
             name = editor.getText ();
@@ -60,6 +59,7 @@ public:
     
     void toggleEdit (bool isInEditMode)
     {
+        this->setVisible (true);
         this->isInEditMode = isInEditMode;
         editor.setVisible (isInEditMode);
         std::cout << editor.isVisible () << std::endl;

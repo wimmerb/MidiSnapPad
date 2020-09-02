@@ -22,6 +22,7 @@ public:
     {}
     
     std::function <void ()> informParent;
+    std::function <void ()> alignPosition;
     
     void paint (juce::Graphics& g) override
     {
@@ -65,6 +66,12 @@ public:
         informParent ();
     }
     
+    void mouseUp  (const juce::MouseEvent& e) override
+    {
+        informParent ();
+        alignPosition ();
+    }
+    
     void parentSizeChanged() override
     {
         
@@ -75,16 +82,16 @@ public:
                                  false, false, false, false);
         setBounds (newBounds);
         
-        constrainer.setMinimumOnscreenAmounts (getHeight(), getWidth(), getHeight(), getWidth());
+        constrainer.setMinimumOnscreenAmounts ( getHeight(), getWidth(), getHeight(), getWidth() );
         
         repaint ();
         
         informParent ();
     }
     
-    void toggleEdit ()
+    void toggleEdit (bool isInEditMode)
     {
-        setVisible (!isVisible ());
+        setVisible (!isInEditMode);
     }
     
 private:
@@ -185,17 +192,29 @@ public:
     //==============================================================================
     MatrixField()
     {
-        
+        //NEXT CURSORFIELD ALIGNEN!
         
         
         addAndMakeVisible (innerField);
         
         cursorField.informParent = [&]
         {
+            std::cout << "informed" << std::endl;
             currentCursorPositionToInnerField = cursorField.getBoundsInParent (). getCentre ();
-            getCurrentlySelectedArea ();
+            MatrixFieldArea<int> * currentField = getCurrentlySelectedArea ();
         };
         
+        cursorField.alignPosition = [&]
+        {
+            double criticalOffset = (double) std::min (this->getWidth (), this->getHeight ()) / 30.0f;
+            MatrixFieldArea<int> * currentField = getCurrentlySelectedArea ();
+            
+            if (cursorField.getBoundsInParent ().getCentre ().getDistanceFrom (currentField->getArea (). getCentre ()) > criticalOffset )
+                return;
+            cursorField.setCentrePosition(currentField->getArea (). getCentre (). getX (), currentField->getArea (). getCentre (). getY () );
+            cursorField.informParent ();
+        };
+            
         nrMatrixFieldAreasChanged ();
         
         
@@ -322,14 +341,14 @@ public:
         return nullptr;
     }
     
-    void toggleEdit ()
+    void toggleEdit (bool isInEditMode)
     {
-        isInEditMode = !isInEditMode;
+        this->isInEditMode = isInEditMode;
         for (auto i : matrixFieldAreas)
         {
             i->toggleEdit ( isInEditMode );
         }
-        cursorField.toggleEdit ();
+        cursorField.toggleEdit ( isInEditMode );
         repaint ();
     }
     

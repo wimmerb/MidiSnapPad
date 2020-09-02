@@ -13,10 +13,16 @@ MainComponent::MainComponent()
     //TODO editmode speichern und so auch übergeben.
     editModeToggle->onValueChange = [&]
     {
-        matrix.toggleEdit ();
+        bool isInEditMode = (bool) editModeToggle->getValueObject ().getValue ();
+        
+        std::cout << "gi" << std::endl;
+        std::cout << isInEditMode << std::endl;
+        std::cout << "gi" << std::endl;
+        
+        matrix.toggleEdit (isInEditMode);
         for (auto i : knobs)
         {
-            i->toggleEdit ();
+            i->toggleEdit (isInEditMode);
         }
     };
     
@@ -51,6 +57,8 @@ MainComponent::MainComponent()
     
     
     resized();
+    
+    editModeToggle->onValueChange ();
 }
 
 
@@ -82,7 +90,7 @@ MainComponent::~MainComponent()
 void MainComponent::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
+    g.fillAll (getLookAndFeel ().findColour (juce::ResizableWindow::backgroundColourId));
 
     /*g.setFont (juce::Font (16.0f));
     g.setColour (juce::Colours::white);
@@ -92,6 +100,8 @@ void MainComponent::paint (juce::Graphics& g)
 void MainComponent::resized ()
 {
     auto area = getLocalBounds ();
+    
+    //TODO textbox neben midiOutputList bzw. midiOutputList als eigenes Zeichen...
     midiOutputList.setBounds (area.removeFromTop (36).reduced (8));
     auto lowerarea2 = area.removeFromTop (300);
     auto upperarea2 = lowerarea2.removeFromTop (150);
