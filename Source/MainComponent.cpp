@@ -2,6 +2,19 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
+    matrix.updateKnobs = [&]
+    {
+        std::cout << "landedHEREEE" << std::endl;
+        std::vector <double> newValues = matrix.produceNewKnobValues();
+        for (int i = 0; i <  newValues.size(); i++)
+        {
+            knobs[i] -> setValue (newValues [i]);
+        }
+    };
+    //make sure knobs are inited
+    manipulateMatrixValues();
+    addAndMakeVisible (matrix);
+    
     //IDEE: algebraisches Zeug in dieser Komponente. eher nein.
     editModeToggle = new juce::Slider ();
     editModeToggle->setSliderStyle (juce::Slider::SliderStyle::LinearHorizontal);
@@ -33,9 +46,7 @@ MainComponent::MainComponent()
     
     for (int i = 0; i < 8; i++)
     {
-        MidiKnob * tmp = new MidiKnob (midiOut);
-        knobs.push_back (tmp);
-        addAndMakeVisible (*tmp);
+        pushBackNewKnob();
     }
     
     setSize (400, 800);
@@ -53,7 +64,9 @@ MainComponent::MainComponent()
     if (midiOutputList.getSelectedId() == 0)
         setMidiOutput (0);
     
-    addAndMakeVisible (matrix);
+    
+    
+    
     
     
     resized();
@@ -69,6 +82,27 @@ void MainComponent::setMidiOutput (int index)
     auto newOutput = list[index];
 
     midiOut = juce::MidiOutput::openDevice (newOutput.identifier);
+}
+
+void MainComponent::pushBackNewKnob ()
+{
+    MidiKnob * tmp = new MidiKnob (midiOut);
+    knobs.push_back (tmp);
+    addAndMakeVisible (*tmp);
+    tmp->onValueManipulated = [&]
+    {
+        manipulateMatrixValues ();
+    };
+}
+
+void MainComponent::manipulateMatrixValues ()
+{
+    std::vector <double> knobValuesAtCurrentPosition;
+    for (auto knob : knobs)
+    {
+        knobValuesAtCurrentPosition.push_back ( knob->getValue () );
+    }
+    matrix.manipulateValues(knobValuesAtCurrentPosition);
 }
 
 MainComponent::~MainComponent()

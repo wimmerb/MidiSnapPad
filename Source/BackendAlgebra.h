@@ -12,6 +12,7 @@
 #include <xtensor/xarray.hpp>
 #include <xtensor/xio.hpp>
 #include <xtensor/xview.hpp>
+#include <xtensor/xadapt.hpp>
 #include <xtensor-blas/xlinalg.hpp>
 #include "MyTextEditor.h"
 
@@ -111,76 +112,39 @@ public:
         setText (param);
     }
     
-    void setArea (juce::Rectangle<ValueType> newArea)
-    {
-        area = newArea;
-    }
-    
-    juce::Rectangle<ValueType> getArea ()
-    {
-        return area;
-    }
-    
     bool contains (juce::Point <ValueType> point)
     {
-        juce::Rectangle<ValueType> checkArea = area;
+        juce::Rectangle<ValueType> checkArea = getBoundsInParent();
         checkArea.setWidth (checkArea.getWidth() + 1);
         checkArea.setHeight (checkArea.getHeight() + 1);
         return checkArea. contains (point);
     }
     
+    //TODO deprecated in my current approach
     ValueType getDistanceFromSnapshotPosition (juce::Point <ValueType> other)
     {
         return representedSnapshotPosition.getDistanceFrom (other);
     }
     
-//    void paintOverChildren (juce::Graphics& g) override
-//    {}
+    std::vector <double> & getRepresentedSnapshotKnobPositions ()
+    {
+        return representedSnapshotKnobPositions;
+    }
     
-//    void paint (juce::Graphics& g) override
-//    {
-//        auto bounds = getLocalBounds();
-//
-//        if (isInEditMode)
-//        {
-//            g.setColour (juce::Colours::pink.withAlpha (0.3f));
-//            g.fillRect (bounds);
-//        }
-//
-////        g.setColour (juce::Colours::white);
-////        g.drawText(name, bounds, juce::Justification::centred);
-//
-//    }
-    
-//    void resized () override
-//    {
-//        repaint();
-//    }
-//
-//    void mouseDown (const juce::MouseEvent& e) override
-//    {
-//        if (not isInEditMode)
-//            return;
-//        name = "click";
-//        repaint();
-//    }
-    
-    
-//    void toggleEdit ()
-//    {
-//        isInEditMode = !isInEditMode;
-//        setReadOnly (!isReadOnly ());
-//    }
-    
-    
+    void setRepresentedSnapshotKnobPositions (std::vector <double> newPositions)
+    {
+        representedSnapshotKnobPositions = newPositions;
+        for (auto position : representedSnapshotKnobPositions)
+        {
+            std::cout << "jo" << position << std::endl;
+        }
+    }
     
     
 private:
-    juce::Rectangle<ValueType> area;
-    juce::Point<ValueType> representedSnapshotPosition;
-    //juce::String name = "Smooth";
-    
-    //bool isInEditMode {false};
+    //TODO deprecated in my current approach
+    juce::Point <ValueType> representedSnapshotPosition;
+    std::vector <double> representedSnapshotKnobPositions;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MatrixFieldArea)
 };
@@ -192,16 +156,15 @@ public:
     //==============================================================================
     MatrixField()
     {
-        //NEXT CURSORFIELD ALIGNEN!
-        
-        
         addAndMakeVisible (innerField);
         
         cursorField.informParent = [&]
         {
-            std::cout << "informed" << std::endl;
-            currentCursorPositionToInnerField = cursorField.getBoundsInParent (). getCentre ();
+//            currentCursorPositionToInnerField = cursorField.getBoundsInParent (). getCentre ();
+//            std::cout << cursorField.getBoundsInParent (). getX () << std::endl;
+//            std::cout << cursorField.getBounds (). getX () << std::endl;
             MatrixFieldArea<int> * currentField = getCurrentlySelectedArea ();
+            updateKnobs ();
         };
         
         cursorField.alignPosition = [&]
@@ -209,9 +172,9 @@ public:
             double criticalOffset = (double) std::min (this->getWidth (), this->getHeight ()) / 30.0f;
             MatrixFieldArea<int> * currentField = getCurrentlySelectedArea ();
             
-            if (cursorField.getBoundsInParent ().getCentre ().getDistanceFrom (currentField->getArea (). getCentre ()) > criticalOffset )
+            if (cursorField.getBoundsInParent ().getCentre ().getDistanceFrom (currentField->getBoundsInParent (). getCentre ()) > criticalOffset )
                 return;
-            cursorField.setCentrePosition(currentField->getArea (). getCentre (). getX (), currentField->getArea (). getCentre (). getY () );
+            cursorField.setCentrePosition(currentField->getBoundsInParent (). getCentre (). getX (), currentField->getBoundsInParent (). getCentre (). getY () );
             cursorField.informParent ();
         };
             
@@ -257,17 +220,6 @@ public:
         g.setColour (backgroundColour);
         
         g.fillPath (p);
-        
-//        g.setColour(getLookAndFeel ().findColour (juce::ResizableWindow::backgroundColourId) );
-//        g.strokePath (p, juce::PathStrokeType (10.0f) );
-//
-//        g.setColour(shadowTone);
-//        for (int i = 0; i < 30; i++)
-//        {
-//            g.strokePath (p, juce::PathStrokeType (2.0f), juce::AffineTransform::translation (i * 1.5f, i * 1.5f));
-//        }
-        
-        
         
         for (int i = 0; i < nrRows - 1; i++)
         {
@@ -320,16 +272,407 @@ public:
     
     //==============================================================================
     
+    std::vector <double> produceNewKnobValues ()
+    {
+        
+        MatrixFieldArea<int> * currentArea = getCurrentlySelectedArea ();
+        
+        //getting 3 neighbours of current cursorPosition and currentArea ->works ->blackbox this :)
+        auto getNearestNeighbourRectangle =
+        [&] () -> std::vector <MatrixFieldArea<int> *>
+        {
+            std::vector <std::vector <int>> indexes;
+            int currentIndex = -1;
+            for ( int i = 0; i < nrRows * nrColumns; i++)
+            {
+                if (matrixFieldAreas.at (i) == currentArea)
+                {
+                    currentIndex = i;
+                }
+            }
+            if (currentIndex == -1)
+            {
+                try
+                {
+                    throw 21;
+                }
+                catch (int e)
+                {
+                    std::cout << "An exception occurred. Exception Nr. " << e << '\n';
+                }
+            }
+            //leftupper
+            std::vector <int> leftUpper;
+            leftUpper.push_back (currentIndex - 1);
+            leftUpper.push_back (currentIndex - nrColumns);
+            leftUpper.push_back (currentIndex - nrColumns - 1);
+            //rightupper
+            std::vector <int> rightUpper;
+            rightUpper.push_back (currentIndex + 1);
+            rightUpper.push_back (currentIndex - nrColumns);
+            rightUpper.push_back (currentIndex - nrColumns + 1);
+            //leftlower
+            std::vector <int> leftLower;
+            leftLower.push_back (currentIndex - 1);
+            leftLower.push_back (currentIndex + nrColumns);
+            leftLower.push_back (currentIndex + nrColumns - 1);
+            //rightlower
+            std::vector <int> rightLower;
+            rightLower.push_back (currentIndex + 1);
+            rightLower.push_back (currentIndex + nrColumns);
+            rightLower.push_back (currentIndex + nrColumns + 1);
+            //push 'em
+            if ( std::all_of (leftUpper.begin (), leftUpper.end (), [&](int i){return i >= 0 && i < nrRows * nrColumns;} ) )
+                indexes.push_back (leftUpper);
+            if ( std::all_of (rightUpper.begin (), rightUpper.end (), [&](int i){return i >= 0 && i < nrRows * nrColumns;} ) )
+                indexes.push_back (rightUpper);
+            if ( std::all_of (leftLower.begin (), leftLower.end (), [&](int i){return i >= 0 && i < nrRows * nrColumns;} ) )
+                indexes.push_back (leftLower);
+            if ( std::all_of (rightLower.begin (), rightLower.end (), [&](int i){return i >= 0 && i < nrRows * nrColumns;} ) )
+                indexes.push_back (rightLower);
+            
+            if (indexes.size() < 1)
+            {
+                try
+                {
+                    throw 22;
+                }
+                catch (int e)
+                {
+                    std::cout << "An exception occurred. Exception Nr. " << e << '\n';
+                }
+            }
+            for (auto vec : indexes)
+            {
+                std::cout << std::endl;
+                std::cout << "Vorschlag" << std::endl;
+                for (auto i : vec)
+                {
+                    std::cout << i << "; ";
+                }
+            }
+            
+            std::vector <MatrixFieldArea<int> *> ret;
+            int lowestSummedDistance = std::numeric_limits<int>::max ();
+            for (auto vec : indexes)
+            {
+                int summedDistance = 0;
+                std::vector <MatrixFieldArea<int> *> possibleNeighbour;
+                
+                for (int i : vec)
+                {
+                    possibleNeighbour.push_back (matrixFieldAreas.at (i));
+                }
+                
+                for (auto area : possibleNeighbour)
+                {
+                    summedDistance += cursorField.getBoundsInParent (). getCentre (). getDistanceFrom (area ->getBoundsInParent (). getCentre ());
+                }
+                
+                if (summedDistance < lowestSummedDistance)
+                {
+                    lowestSummedDistance = summedDistance;
+                    ret = possibleNeighbour;
+                }
+                
+            }
+            for (auto area : ret)
+            {
+                std::cout << std::endl;
+                std::cout << "Lösung" << std::endl;
+                for (int i = 0; i < nrRows*nrColumns ; i++)
+                {
+                    if (matrixFieldAreas.at (i) == area)
+                    {
+                        std::cout << i << "; ";
+                    }
+                }
+            }
+            
+            return ret;
+        };
+        
+        std::vector <MatrixFieldArea<int> *> neighbours = getNearestNeighbourRectangle ();
+        //add the 4th in the group
+        neighbours.push_back (currentArea);
+        std::vector <double> aVector;
+        for (auto area : neighbours)
+        {
+            aVector.push_back (1);
+            aVector.push_back (area->getBoundsInParent (). getCentre (). getX ());
+            aVector.push_back (area->getBoundsInParent (). getCentre (). getY ());
+            aVector.push_back (area->getBoundsInParent (). getCentre (). getX () * area->getBoundsInParent (). getCentre (). getY ());
+        }
+        
+        std::vector<std::size_t> shape = { 4, 4 };
+        
+        xt::xarray <double> A = xt::adapt (aVector, shape);
+        //        produces something similar to the following:
+        //        xt::xarray<double> A
+        //        {
+        //            {1, x1, y1, x1 * y1},
+        //            {1, x2, y2, x2 * y2},
+        //            {1, x3, y3, x3 * y3},
+        //            {1, x4, y4, x4 * y4}
+        //        };
+        
+        std::vector <double> newPositions;
+        int nrSpecifiedKnobs = 0;
+        for (auto area : neighbours)
+        {
+            //TODO
+            int bla = area->getRepresentedSnapshotKnobPositions (). size ();
+            nrSpecifiedKnobs = std::max (nrSpecifiedKnobs, bla );
+
+            //            nrSpecifiedKnobs = std::max (nrSpecifiedKnobs, area->getRepresentedSnapshotKnobPositions (). size () );
+        }
+        
+        for (int i = 0; i < nrSpecifiedKnobs; i++)
+        {
+            
+            //Werte für alle Knöpfe errechnen!
+            for (auto area : neighbours)
+            {
+                while (area->getRepresentedSnapshotKnobPositions ().size () < nrSpecifiedKnobs)
+                {
+                    area->getRepresentedSnapshotKnobPositions ().push_back (0.0);
+                    std::cout << "reached this point" << std::endl;
+                    std::cout << area->getRepresentedSnapshotKnobPositions ().size () << std::endl;
+                }
+            }
+            
+            
+            
+            double f1 = neighbours [0] ->getRepresentedSnapshotKnobPositions () [i];
+            double f2 = neighbours [1] ->getRepresentedSnapshotKnobPositions () [i];
+            double f3 = neighbours [2] ->getRepresentedSnapshotKnobPositions () [i];
+            double f4 = neighbours [3] ->getRepresentedSnapshotKnobPositions () [i];
+            
+            xt::xarray<double> B
+            {f1, f2, f3, f4};
+            
+            auto v = xt::linalg::solve (A, B);
+            
+            double a = v[0];
+            double b = v[1];
+            double c = v[2];
+            double d = v[3];
+            
+            double x = cursorField.getBoundsInParent (). getCentre (). getX ();
+            double y = cursorField.getBoundsInParent (). getCentre (). getY ();
+            
+            double ret = a + b*x + c*y + d*x*y;
+            
+            newPositions.push_back (ret);
+        }
+        return newPositions;
+    }
+    
+    void manipulateValues (std::vector <double> knobValuesAtCurrentPosition)
+    {
+        
+        MatrixFieldArea<int> * currentArea = getCurrentlySelectedArea ();
+        
+        //getting 3 neighbours next to currentCursorPosition and currentArea ->works ->blackbox this :)
+        auto getNearestNeighbourRectangle =
+        [&] () -> std::vector <MatrixFieldArea<int> *>
+        {
+            std::vector <std::vector <int>> indexes;
+            int currentIndex = -1;
+            for ( int i = 0; i < nrRows * nrColumns; i++)
+            {
+                if (matrixFieldAreas.at (i) == currentArea)
+                {
+                    currentIndex = i;
+                }
+            }
+            if (currentIndex == -1)
+            {
+                try
+                {
+                    throw 21;
+                }
+                catch (int e)
+                {
+                    std::cout << "An exception occurred. Exception Nr. " << e << '\n';
+                }
+            }
+            //leftupper
+            std::vector <int> leftUpper;
+            leftUpper.push_back (currentIndex - 1);
+            leftUpper.push_back (currentIndex - nrColumns);
+            leftUpper.push_back (currentIndex - nrColumns - 1);
+            //rightupper
+            std::vector <int> rightUpper;
+            rightUpper.push_back (currentIndex + 1);
+            rightUpper.push_back (currentIndex - nrColumns);
+            rightUpper.push_back (currentIndex - nrColumns + 1);
+            //leftlower
+            std::vector <int> leftLower;
+            leftLower.push_back (currentIndex - 1);
+            leftLower.push_back (currentIndex + nrColumns);
+            leftLower.push_back (currentIndex + nrColumns - 1);
+            //rightlower
+            std::vector <int> rightLower;
+            rightLower.push_back (currentIndex + 1);
+            rightLower.push_back (currentIndex + nrColumns);
+            rightLower.push_back (currentIndex + nrColumns + 1);
+            //push 'em
+            if ( std::all_of (leftUpper.begin (), leftUpper.end (), [&](int i){return i >= 0 && i < nrRows * nrColumns;} ) )
+                indexes.push_back (leftUpper);
+            if ( std::all_of (rightUpper.begin (), rightUpper.end (), [&](int i){return i >= 0 && i < nrRows * nrColumns;} ) )
+                indexes.push_back (rightUpper);
+            if ( std::all_of (leftLower.begin (), leftLower.end (), [&](int i){return i >= 0 && i < nrRows * nrColumns;} ) )
+                indexes.push_back (leftLower);
+            if ( std::all_of (rightLower.begin (), rightLower.end (), [&](int i){return i >= 0 && i < nrRows * nrColumns;} ) )
+                indexes.push_back (rightLower);
+            
+            if (indexes.size() < 1)
+            {
+                try
+                {
+                    throw 22;
+                }
+                catch (int e)
+                {
+                    std::cout << "An exception occurred. Exception Nr. " << e << '\n';
+                }
+            }
+            for (auto vec : indexes)
+            {
+                std::cout << std::endl;
+                std::cout << "Vorschlag" << std::endl;
+                for (auto i : vec)
+                {
+                    std::cout << i << "; ";
+                }
+            }
+            
+            std::vector <MatrixFieldArea<int> *> ret;
+            int lowestSummedDistance = std::numeric_limits<int>::max ();
+            for (auto vec : indexes)
+            {
+                int summedDistance = 0;
+                std::vector <MatrixFieldArea<int> *> possibleNeighbour;
+                
+                for (int i : vec)
+                {
+                    possibleNeighbour.push_back (matrixFieldAreas.at (i));
+                }
+                
+                for (auto area : possibleNeighbour)
+                {
+                    summedDistance += cursorField.getBoundsInParent (). getCentre (). getDistanceFrom (area ->getBoundsInParent (). getCentre ());
+                }
+                
+                if (summedDistance < lowestSummedDistance)
+                {
+                    lowestSummedDistance = summedDistance;
+                    ret = possibleNeighbour;
+                }
+                
+            }
+            for (auto area : ret)
+            {
+                std::cout << std::endl;
+                std::cout << "Lösung" << std::endl;
+                for (int i = 0; i < nrRows*nrColumns ; i++)
+                {
+                    if (matrixFieldAreas.at (i) == area)
+                    {
+                        std::cout << i << "; ";
+                    }
+                }
+            }
+            
+            return ret;
+        };
+        
+        //knowing the neighbours we want to use as reference and the cursorPosition/knobPositions, we can deduct the new knobpositions for the center of currentArea
+        std::vector <MatrixFieldArea<int> *> neighbours = getNearestNeighbourRectangle ();
+        
+        std::vector <double> aVector;
+        aVector.push_back (1);
+        aVector.push_back (cursorField.getBoundsInParent (). getCentre (). getX ());
+        aVector.push_back (cursorField.getBoundsInParent (). getCentre (). getY ());
+        aVector.push_back (cursorField.getBoundsInParent (). getCentre (). getX () * cursorField.getBoundsInParent (). getCentre (). getY ());
+        for (auto area : neighbours)
+        {
+            aVector.push_back (1);
+            aVector.push_back (area->getBoundsInParent (). getCentre (). getX ());
+            aVector.push_back (area->getBoundsInParent (). getCentre (). getY ());
+            aVector.push_back (area->getBoundsInParent (). getCentre (). getX () * area->getBoundsInParent (). getCentre (). getY ());
+        }
+        
+        std::vector<std::size_t> shape = { 4, 4 };
+        
+        xt::xarray <double> A = xt::adapt (aVector, shape);
+        //        produces something similar to the following:
+        //        xt::xarray<double> A
+        //        {
+        //            {1, x1, y1, x1 * y1},
+        //            {1, x2, y2, x2 * y2},
+        //            {1, x3, y3, x3 * y3},
+        //            {1, x4, y4, x4 * y4}
+        //        };
+        
+        std::vector <double> newPositions;
+        for (int i = 0; i < knobValuesAtCurrentPosition.size (); i++)
+        {
+            
+            //Werte für alle Knöpfe errechnen!
+            double f1 = knobValuesAtCurrentPosition [i];
+            for (auto area : neighbours)
+            {
+                while (area->getRepresentedSnapshotKnobPositions ().size () < knobValuesAtCurrentPosition.size ())
+                {
+                    area->getRepresentedSnapshotKnobPositions ().push_back (0.0);
+                    std::cout << "reached this point" << std::endl;
+                    std::cout << area->getRepresentedSnapshotKnobPositions ().size () << std::endl;
+                }
+            }
+            
+            
+            
+            double f2 = neighbours [0] ->getRepresentedSnapshotKnobPositions () [i];
+            double f3 = neighbours [1] ->getRepresentedSnapshotKnobPositions () [i];
+            double f4 = neighbours [2] ->getRepresentedSnapshotKnobPositions () [i];
+            
+            xt::xarray<double> B
+            {f1, f2, f3, f4};
+            
+            auto v = xt::linalg::solve (A, B);
+            
+            double a = v[0];
+            double b = v[1];
+            double c = v[2];
+            double d = v[3];
+            
+            double x = currentArea->getBoundsInParent (). getCentre (). getX ();
+            double y = currentArea->getBoundsInParent (). getCentre (). getY ();
+            
+            double ret = a + b*x + c*y + d*x*y;
+            
+            newPositions.push_back (ret);
+        }
+        
+        currentArea->setRepresentedSnapshotKnobPositions (newPositions);
+        
+        return;
+    }
+    
     MatrixFieldArea<int> * getCurrentlySelectedArea()
     {
+        //tested: seems to always have exactly one solution as it's supposed to be
+        
         for ( int i = 0; i < nrRows * nrColumns; i++)
         {
-            if (matrixFieldAreas.at (i) -> contains (currentCursorPositionToInnerField))
+            if (matrixFieldAreas.at (i) -> contains (cursorField.getBoundsInParent (). getCentre ()))
             {
                 return matrixFieldAreas.at (i);
             }
         }
-        std::cout << currentCursorPositionToInnerField.getX() << " " << currentCursorPositionToInnerField.getY() << std::endl;
+        
         try
         {
             throw 20;
@@ -352,50 +695,9 @@ public:
         repaint ();
     }
     
-private:
-    void calculateNewMidiValues ()
-    {
-        double x1 = 0, y1 = 0, f1 = 1;
-        double x2 = 1, y2 = 0, f2 = 0;
-        double x3 = 1, y3 = 1, f3 = 1;
-        double x4 = 0, y4 = 1, f4 = 0;
-        
-        xt::xarray<double> A
-        {
-            {1, x1, y1, x1 * y1},
-            {1, x2, y2, x2 * y2},
-            {1, x3, y3, x3 * y3},
-            {1, x4, y4, x4 * y4}
-        };
-        
-        xt::xarray<double> B
-        {f1, f2, f3, f4};
-        
-        
-        auto v = xt::linalg::solve (A, B);
-        
-        //xt::xarray<double> res = xt::view(arr1, 1) + arr2;
-        std::function<double (xt::xarray<double> v, double x, double y)> giveFunctionOutput =
-        [&](xt::xarray<double> v, double x, double y)
-        {
-            double a = v[0];
-            double b = v[1];
-            double c = v[2];
-            double d = v[3];
-            
-            double ret = a + b*x + c*y + d*x*y;
-            
-            std::cout << "x, y: " << x << ", " << y << " -> " << ret << std::endl;
-            
-            return ret;
-        };
-        
-        giveFunctionOutput (v, 0.5, 0.5);
-        giveFunctionOutput (v, 0.3, 0.7);
-        giveFunctionOutput (v, 0.1, 0.9);
-        giveFunctionOutput (v, 0.99, 0.99);
-    }
+    std::function <void ()> updateKnobs;
     
+private:
     void nrMatrixFieldAreasChanged ()
     {
         innerField.removeAllChildren ();
@@ -420,7 +722,7 @@ private:
     
     void resizeMatrixFieldAreas ()
     {
-        //distribute areas !!!within innerField!!!, so they comply with currentCursorPositionToInnerField
+        //distribute areas !!!within innerField!!!, so they comply with position of cursorfield
         
         for (int rowIndex = 0; rowIndex < nrRows; rowIndex++)
         {
@@ -447,11 +749,6 @@ private:
                 
                 int indexOfArea = rowIndex * nrColumns + columnIndex;
                 
-                matrixFieldAreas.at(indexOfArea) -> setArea (juce::Rectangle<int> ( (int) left,
-                                                                                    (int) top,
-                                                                                    (int) (right - left),
-                                                                                    (int) (bottom - top))
-                                                             );
                 matrixFieldAreas.at (indexOfArea) -> setBounds (juce::Rectangle<int> ( (int) left,
                                                                                        (int) top,
                                                                                        (int) (right - left),
@@ -461,13 +758,11 @@ private:
         }
     }
     
-    Component innerField;
+    Component innerField; //innerField is needed to restrict our draggableCursor correctly, it is also where the MatrixFieldAreas lie within
     
     DraggableCursor cursorField;
     
-    juce::Rectangle<int> currentAnimatedBounds {};
-    
-    juce::Point<int> currentCursorPositionToInnerField {50, 50};
+    juce::Rectangle<int> currentAnimatedBounds {}; //actually not needed, we could just use innerField's bounds
     
     std::vector <MatrixFieldArea<int> *> matrixFieldAreas;
     

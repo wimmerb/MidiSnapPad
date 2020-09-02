@@ -35,7 +35,7 @@ public:
         
         addChildComponent (sliderTitle);
         
-        rotarySlider->onValueChange = [this] () mutable
+        rotarySlider->onValueChange = [&]
         {
             int value = this->rotarySlider->getValue ();
             int * midiCh = midiChannel.getValue ();
@@ -45,8 +45,13 @@ public:
                 return;
             auto msg = juce::MidiMessage::controllerEvent (*midiCh, *midiNr, value);
             this ->midiOut->sendMessageNow (msg);
-            
+            std::cout << "ValueChanged" << std::endl;
         };
+        rotarySlider->onDragEnd = [&]
+        {
+            onValueManipulated ();
+        };
+        
         nr++;
     }
     ~MidiKnob() override
@@ -93,6 +98,19 @@ public:
         
         
         repaint ();
+    }
+    
+    std::function <void ()> onValueManipulated;
+    
+    double getValue ()
+    {
+        return rotarySlider->getValue();
+    }
+    
+    void setValue (double newValue)
+    {
+        newValue = std::min (127.0, std::max (newValue, 0.0) );
+        rotarySlider->setValue(newValue);
     }
     
 private:

@@ -22,10 +22,13 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
     void setMidiOutput (int index);
+    void pushBackNewKnob ();
 
 private:
     //==============================================================================
     // Your private member variables go here...
+    void manipulateMatrixValues ();
+    
     std::shared_ptr<juce::MidiOutput> midiOut;
     juce::ComboBox midiOutputList;
     std::vector<MidiKnob * > knobs;
