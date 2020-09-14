@@ -33,7 +33,7 @@ public:
         //============================ Cursor
         //        float ellipseRadius = 5.0f;
         float cursorLineThickness = 1.5f;
-        juce::Colour cursorColour = juce::Colours::cyan.withAlpha(0.8f);
+        juce::Colour cursorColour = findColour (OtherLookAndFeel::Colours::brightblue);
         g.setColour (cursorColour);
         //        g.fillEllipse (currentCursorPosition.getX() - ellipseRadius, currentCursorPosition.getY() - ellipseRadius, ellipseRadius * 2.0f, ellipseRadius * 2.0f);
         
@@ -41,6 +41,9 @@ public:
         p.addRoundedRectangle (bounds , roundedRectangleCornerSize - 2.0f );
         
         g.strokePath (p, juce::PathStrokeType (cursorLineThickness) );
+        
+        g.setColour (juce::Colours::white.interpolatedWith(juce::Colours::transparentWhite, 0.95f));
+        g.fillPath (p);
     }
     
     void resized() override
@@ -69,8 +72,8 @@ public:
     
     void mouseUp  (const juce::MouseEvent& e) override
     {
-        informParent ();
         alignPosition ();
+        informParent ();
     }
     
     void parentSizeChanged() override
@@ -131,6 +134,44 @@ public:
         return representedSnapshotKnobPositions;
     }
     
+    void mouseDown (const juce::MouseEvent& event) override
+    {
+        demandCursorMove ();
+    }
+    
+    void setSelected ()
+    {
+        isSelected = true;
+        repaint ();
+    }
+    
+    void setUnselected ()
+    {
+        isSelected = false;
+        repaint ();
+    }
+    
+    std::function <void ()> demandCursorMove;
+    
+    void paint (juce::Graphics& g) override
+    {
+        if (isInEditMode)
+            return;
+        auto bounds = getLocalBounds ();
+        
+        if (isSelected)
+        {
+            g.setColour (juce::Colours::white.interpolatedWith(juce::Colours::transparentWhite, 0.9f));
+            g.fillAll ();
+        }
+        
+        g.setColour (findColour (OtherLookAndFeel::Colours::whiteText));
+        g.setFont (16.0f);
+        g.drawText  (name, bounds, juce::Justification::centred);
+        
+        
+    }
+    
     void setRepresentedSnapshotKnobPositions (std::vector <double> newPositions)
     {
         representedSnapshotKnobPositions = newPositions;
@@ -141,10 +182,13 @@ public:
     }
     
     
+    
 private:
     //TODO deprecated in my current approach
     juce::Point <ValueType> representedSnapshotPosition;
     std::vector <double> representedSnapshotKnobPositions;
+    
+    bool isSelected = false;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MatrixFieldArea)
 };
@@ -163,7 +207,12 @@ public:
 //            currentCursorPositionToInnerField = cursorField.getBoundsInParent (). getCentre ();
 //            std::cout << cursorField.getBoundsInParent (). getX () << std::endl;
 //            std::cout << cursorField.getBounds (). getX () << std::endl;
+            for (auto area : matrixFieldAreas)
+            {
+                area->setUnselected ();
+            }
             MatrixFieldArea<int> * currentField = getCurrentlySelectedArea ();
+            currentField->setSelected ();
             updateKnobs ();
         };
         
@@ -174,7 +223,8 @@ public:
             
             if (cursorField.getBoundsInParent ().getCentre ().getDistanceFrom (currentField->getBoundsInParent (). getCentre ()) > criticalOffset )
                 return;
-            cursorField.setCentrePosition(currentField->getBoundsInParent (). getCentre (). getX (), currentField->getBoundsInParent (). getCentre (). getY () );
+            
+            cursorField.setBounds (currentField -> getBoundsInParent ());
             cursorField.informParent ();
         };
             
@@ -199,6 +249,8 @@ public:
     //==============================================================================
     void paint (juce::Graphics& g) override
     {
+        
+        
         if (isInEditMode)
         {
             g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
@@ -208,7 +260,7 @@ public:
         float strokePathThickness = 2.0f;
         float roundedRectangleCornerSize = 6.0f;
         auto bounds = currentAnimatedBounds;
-        juce::Colour backgroundColour = findColour (juce::ComboBox::backgroundColourId);
+        juce::Colour backgroundColour = getLookAndFeel ().findColour (OtherLookAndFeel::Colours::archiveDarkGrey);
         juce::Colour greyTone = juce::Colour(0x353130).interpolatedWith (juce::Colours::white, 0.4f);
         juce::Colour whiteTone = juce::Colour(0x353130).interpolatedWith (juce::Colours::white, 0.5f);
         juce::Colour shadowTone = juce::Colour::fromRGBA(0, 0, 0, 40);
@@ -342,15 +394,6 @@ public:
                     std::cout << "An exception occurred. Exception Nr. " << e << '\n';
                 }
             }
-            for (auto vec : indexes)
-            {
-                std::cout << std::endl;
-                std::cout << "Vorschlag" << std::endl;
-                for (auto i : vec)
-                {
-                    std::cout << i << "; ";
-                }
-            }
             
             std::vector <MatrixFieldArea<int> *> ret;
             int lowestSummedDistance = std::numeric_limits<int>::max ();
@@ -375,18 +418,6 @@ public:
                     ret = possibleNeighbour;
                 }
                 
-            }
-            for (auto area : ret)
-            {
-                std::cout << std::endl;
-                std::cout << "Lösung" << std::endl;
-                for (int i = 0; i < nrRows*nrColumns ; i++)
-                {
-                    if (matrixFieldAreas.at (i) == area)
-                    {
-                        std::cout << i << "; ";
-                    }
-                }
             }
             
             return ret;
@@ -538,15 +569,6 @@ public:
                     std::cout << "An exception occurred. Exception Nr. " << e << '\n';
                 }
             }
-            for (auto vec : indexes)
-            {
-                std::cout << std::endl;
-                std::cout << "Vorschlag" << std::endl;
-                for (auto i : vec)
-                {
-                    std::cout << i << "; ";
-                }
-            }
             
             std::vector <MatrixFieldArea<int> *> ret;
             int lowestSummedDistance = std::numeric_limits<int>::max ();
@@ -571,18 +593,6 @@ public:
                     ret = possibleNeighbour;
                 }
                 
-            }
-            for (auto area : ret)
-            {
-                std::cout << std::endl;
-                std::cout << "Lösung" << std::endl;
-                for (int i = 0; i < nrRows*nrColumns ; i++)
-                {
-                    if (matrixFieldAreas.at (i) == area)
-                    {
-                        std::cout << i << "; ";
-                    }
-                }
             }
             
             return ret;
@@ -707,7 +717,10 @@ private:
             int nrMissingAreas = nrRows * nrColumns - (int) matrixFieldAreas.size ();
             for (int i = 0; i < nrMissingAreas; i++)
             {
-                matrixFieldAreas.push_back (new MatrixFieldArea<int> ("new mode") );
+                MatrixFieldArea<int> * temp = new MatrixFieldArea<int> ("new mode");
+                
+                
+                matrixFieldAreas.push_back (temp);
             }
         }
         //no else here: we want to keep "hidden" Fields, just keep the sizes right
@@ -715,6 +728,12 @@ private:
         for (auto i : matrixFieldAreas)
         {
             innerField.addAndMakeVisible(i);
+            i->demandCursorMove = [i, this]
+            {
+                std::cout << i->getBoundsInParent ().getX () << i->getBoundsInParent ().getY () << std::endl;
+                cursorField.setBounds ( i->getBoundsInParent () );
+                cursorField.informParent ();
+            };
         }
         
         resizeMatrixFieldAreas();

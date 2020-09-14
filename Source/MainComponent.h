@@ -5,6 +5,7 @@
 #include "ScrollableNumber.h"
 #include "MidiKnob.h"
 #include "BackendAlgebra.h"
+#include "MyText.h"
 
 //==============================================================================
 /*
@@ -29,12 +30,22 @@ private:
     // Your private member variables go here...
     void manipulateMatrixValues ();
     
+    
     std::shared_ptr<juce::MidiOutput> midiOut;
+    MyText midiOutputTitle {"Midi Out : "};
     juce::ComboBox midiOutputList;
     std::vector<MidiKnob * > knobs;
     OtherLookAndFeel otherLookAndFeel;
     MatrixField matrix {};
     juce::Slider * editModeToggle;
+    juce::Rectangle<int> backgroundArea;
+    
+    
+    
+    
+    
+    
+    
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

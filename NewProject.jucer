@@ -4,6 +4,7 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1">
   <MAINGROUP id="pg2mq6" name="NewProject">
     <GROUP id="{72670E66-FD81-D5D7-18D0-ED516248A196}" name="Source">
+      <FILE id="XNL7t8" name="MyText.h" compile="0" resource="0" file="Source/MyText.h"/>
       <FILE id="swVxk7" name="MyTextEditor.h" compile="0" resource="0" file="Source/MyTextEditor.h"/>
       <FILE id="q9MMfR" name="BackendAlgebra.h" compile="0" resource="0"
             file="Source/BackendAlgebra.h"/>

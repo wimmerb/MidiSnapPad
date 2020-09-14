@@ -41,7 +41,7 @@ public:
         float cornerSize = 3.0f;
         
         //name display==================================================================
-        g.setColour (juce::Colours::white);
+        g.setColour (findColour (OtherLookAndFeel::Colours::whiteText));
         g.drawText(name, bounds.removeFromBottom (0.3f * bounds.getHeight () ), juce::Justification::centred);
         
         //background==================================================================
@@ -49,12 +49,12 @@ public:
         g.fillRoundedRectangle (bounds, cornerSize);
         
         //Number text==================================================================
-        g.setColour (juce::Colours::white);
+        g.setColour (findColour (OtherLookAndFeel::Colours::whiteText));
         g.drawText (assignValueText (value), bounds, juce::Justification::centred);
         
         
         float fontHeight = g.getCurrentFont().getHeight();
-        g.setColour (juce::Colours::white.withAlpha (0.3f) );
+        g.setColour (findColour (OtherLookAndFeel::Colours::whiteText).withAlpha (0.3f) );
         
         
         //"hidden" Text vertically rescaled to get number roll feel

@@ -15,10 +15,11 @@ class MyTextEditorEditPart : public juce::TextEditor
 public:
     MyTextEditorEditPart ()
     {
-        setJustification (juce::Justification::centred);
+        setFont (16.0f);
+        setJustification (juce::Justification::centredTop);
         setWantsKeyboardFocus (true);
         setCaretVisible (true);
-        setMultiLine (false);
+        setMultiLine (true);
     }
     void paintOverChildren (juce::Graphics& g) override {}
     void paint (juce::Graphics& g) override
@@ -26,10 +27,15 @@ public:
         auto bounds = getLocalBounds ().toFloat ();
         if (hasKeyboardFocus (true))
         {
-            g.setColour (juce::Colours::pink.withAlpha (0.5f));
+            g.setColour (getLookAndFeel ().findColour (OtherLookAndFeel::Colours::brightblue).withAlpha (0.5f));
+            //g.setColour (juce::Colours::pink.withAlpha (0.5f));
         }
         else
-            g.setColour (juce::Colours::pink.withAlpha (0.3f));
+        {
+            g.setColour (getLookAndFeel ().findColour (OtherLookAndFeel::Colours::brightblue).withAlpha (0.3f));
+            //g.setColour (juce::Colours::pink.withAlpha (0.3f));
+        }
+        
         g.fillRect (bounds);
     }
 private:
@@ -39,8 +45,9 @@ class MyTextEditor : public juce::Component
 {
 public:
     
-    MyTextEditor ()
+    MyTextEditor (bool isCentred)
     {
+        this->isCentred = isCentred;
         addChildComponent (editor);
         editor.onTextChange = [&]
         {
@@ -48,13 +55,21 @@ public:
         };
     }
     
+    MyTextEditor () : MyTextEditor (true) {}
+    
     void paint (juce::Graphics& g) override
     {
         if (isInEditMode)
             return;
         auto bounds = getLocalBounds ();
-        g.setColour (juce::Colours::white);
-        g.drawText  (name, bounds, juce::Justification::centred);
+        
+        g.setColour (findColour (OtherLookAndFeel::Colours::whiteText));
+        g.setFont (16.0f);
+        
+        if (isCentred)
+            g.drawText  (name, bounds, juce::Justification::centred);
+        else
+            g.drawText  (name, bounds, juce::Justification::centredTop);
     }
     
     void toggleEdit (bool isInEditMode)
@@ -78,11 +93,14 @@ public:
         name = text;
     }
     
-private:
-    MyTextEditorEditPart editor {};
     juce::String name = "name";
     
     bool isInEditMode = false;
+    
+private:
+    MyTextEditorEditPart editor {};
+    bool isCentred = true;
+    
 };
 
 

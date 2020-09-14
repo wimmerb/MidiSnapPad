@@ -67,6 +67,9 @@ public:
 //        auto bounds = getLocalBounds ().toFloat ();
 //        g.setColour (juce::Colours::pink.withAlpha (0.3f));
         //g.fillRect (bounds);
+        auto bounds = getLocalBounds ().toFloat ();
+        g.setColour (juce::Colour::fromRGB (90, 90, 90));
+        //g.drawRoundedRectangle(bounds, 20.0f, 0.5f);
     }
     
     void resized() override
@@ -121,7 +124,7 @@ private:
     ScrollableNumber midiChannel {1, 16, 1, "Ch"};
     ScrollableNumber midiControlChange {0, 127, nr, "Nr"};
     
-    MyTextEditor sliderTitle;
+    MyTextEditor sliderTitle {false};
     
     bool isInEditMode {false};
     
