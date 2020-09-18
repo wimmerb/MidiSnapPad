@@ -4,6 +4,8 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1">
   <MAINGROUP id="pg2mq6" name="NewProject">
     <GROUP id="{72670E66-FD81-D5D7-18D0-ED516248A196}" name="Source">
+      <FILE id="GOWTIk" name="MetaSettingComponent.h" compile="0" resource="0"
+            file="Source/MetaSettingComponent.h"/>
       <FILE id="XNL7t8" name="MyText.h" compile="0" resource="0" file="Source/MyText.h"/>
       <FILE id="swVxk7" name="MyTextEditor.h" compile="0" resource="0" file="Source/MyTextEditor.h"/>
       <FILE id="q9MMfR" name="BackendAlgebra.h" compile="0" resource="0"
@@ -23,8 +25,8 @@
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/XTensor/xtl-master/include;&#10;~/MyProgramming/MyLibraries/XTensor/xtensor-master/include;&#10;~/MyProgramming/MyLibraries/xtensor-blas-master/include;"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/XTensor/xtl-master/include;&#10;~/MyProgramming/MyLibraries/XTensor/xtensor-master/include;&#10;~/MyProgramming/MyLibraries/xtensor-blas-master/include;"/>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/XTensor/xtl-master/include;&#10;~/MyProgramming/MyLibraries/XTensor/xtensor-master/include;&#10;~/MyProgramming/MyLibraries/xtensor-blas-master/include;&#10;~/MyProgramming/MyLibraries/eigen"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="NewProject" headerPath="~/MyProgramming/MyLibraries/XTensor/xtl-master/include;&#10;~/MyProgramming/MyLibraries/XTensor/xtensor-master/include;&#10;~/MyProgramming/MyLibraries/xtensor-blas-master/include;&#10;~/MyProgramming/MyLibraries/eigen"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_core" path="../../JUCE/modules"/>
@@ -36,6 +38,21 @@
         <MODULEPATH id="juce_audio_devices" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
+    <ANDROIDSTUDIO targetFolder="Builds/Android">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics"/>
+      </MODULEPATHS>
+    </ANDROIDSTUDIO>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

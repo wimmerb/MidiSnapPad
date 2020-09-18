@@ -6,6 +6,7 @@
 #include "MidiKnob.h"
 #include "BackendAlgebra.h"
 #include "MyText.h"
+#include "MetaSettingComponent.h"
 
 //==============================================================================
 /*
@@ -31,6 +32,7 @@ private:
     void manipulateMatrixValues ();
     
     
+    MetaSettingComponent metaSettings;
     std::shared_ptr<juce::MidiOutput> midiOut;
     MyText midiOutputTitle {"Midi Out : "};
     juce::ComboBox midiOutputList;

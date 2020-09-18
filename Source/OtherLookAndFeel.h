@@ -22,11 +22,12 @@ public:
         setColour (Colours::generalBackground, juce::Colour::fromRGB (30, 30, 30));
         setColour (Colours::archiveBackground, juce::Colour::fromRGB (49, 51, 52));
         setColour (Colours::archiveDarkGrey, juce::Colour::fromRGB (42, 42, 42));
+        setColour (Colours::archiveLightGrey, juce::Colours::darkgrey);
         setColour (Colours::brightblue, juce::Colour::fromRGB (19, 190, 190));
         setColour (Colours::brightbrightblue, juce::Colour::fromRGB (20, 220, 220));
         setColour (Colours::whiteText, juce::Colour::fromRGB (240, 240, 240));
         setColour (Colours::darkText, juce::Colour::fromRGB (200, 200, 200));
-        setColour (Colours::archiveOutline, juce::Colour (0x353130).interpolatedWith (juce::Colours::white, 0.5f));
+        setColour (Colours::archiveOutline, juce::Colour::fromRGB (100, 100, 100));
     }
     
     struct Colours {
@@ -82,7 +83,7 @@ public:
         }
         
         g.setColour (outerCircleBackgroundColour);
-        g.strokePath (outerCircle, juce::PathStrokeType (outerCircleBackgroundThickness, juce::PathStrokeType::JointStyle::mitered, juce::PathStrokeType::EndCapStyle::rounded) );
+        g.strokePath (outerCircle, juce::PathStrokeType (outerCircleBackgroundThickness, juce::PathStrokeType::JointStyle::beveled, juce::PathStrokeType::EndCapStyle::rounded) );
         
         outerCircle.clear();
         
@@ -97,7 +98,7 @@ public:
         }
         
         g.setColour (outerCircleProgressBarColour);
-        g.strokePath (outerCircle, juce::PathStrokeType (outerCircleProgressBarThickness, juce::PathStrokeType::JointStyle::mitered, juce::PathStrokeType::EndCapStyle::rounded) );
+        g.strokePath (outerCircle, juce::PathStrokeType (outerCircleProgressBarThickness, juce::PathStrokeType::JointStyle::beveled, juce::PathStrokeType::EndCapStyle::rounded) );
         
         // Knob ==============================================================================
         juce::Path ellipse;
@@ -111,7 +112,7 @@ public:
         }
         
         // knob
-        g.setColour (juce::Colours::darkgrey);
+        g.setColour (findColour (Colours::archiveLightGrey));
         g.fillPath(ellipse);
         
         // knob rim
@@ -170,7 +171,7 @@ public:
 //        g.strokePath (p, juce::PathStrokeType (strokePathThickness));
         
         
-        auto boundsLeft = bounds.removeFromLeft (width / 2);
+        auto boundsLeft = bounds.removeFromLeft (bounds.getWidth () / 2);
         auto boundsRight = bounds;
 //        g.setColour (juce::Colours::pink);
 //        g.fillRect (bounds);
@@ -196,62 +197,27 @@ public:
                            currentIndicatedBounds.getTopRight (). getX (), currentIndicatedBounds.getTopRight (). getY () + cs);
                 p.lineTo (currentIndicatedBounds.getBottomRight (). getX (), currentIndicatedBounds.getBottomRight (). getY ());
                 
-                g.setColour (juce::Colours::darkgrey.interpolatedWith (juce::Colours::black, 0.05f));
+                g.setColour (findColour (Colours::archiveLightGrey));
                 g.fillPath (p);
                 
                 g.setColour (findColour (Colours::archiveOutline).interpolatedWith (findColour (Colours::archiveBackground), 0.5f));
-                g.strokePath (p, juce::PathStrokeType (0.5f));
+                g.strokePath (p, juce::PathStrokeType (0.5f, juce::PathStrokeType::JointStyle::beveled, juce::PathStrokeType::EndCapStyle::square));
 
-                
-//                //Drawing offset for button "in behind"
-//                currentIndicatedBounds = boundsRight;
-//                auto cs = 20.0f;
-//                auto cs45 = 20.0f * 0.45f;
-//
-//                p.clear ();
-//                p.startNewSubPath (currentIndicatedBounds.getX (), currentIndicatedBounds.getY ());
-//                p.lineTo (currentIndicatedBounds.getTopRight (). getX () - cs, currentIndicatedBounds.getTopRight (). getY ());
-//                //p.cubicTo (x, y + cs45, x + cs45, y, x + cs, y);
-//                p.cubicTo (currentIndicatedBounds.getTopRight (). getX () - cs + cs45, currentIndicatedBounds.getTopRight (). getY (),
-//                           currentIndicatedBounds.getTopRight (). getX (), currentIndicatedBounds.getTopRight (). getY () + cs45,
-//                           currentIndicatedBounds.getTopRight (). getX (), currentIndicatedBounds.getTopRight (). getY () + cs);
-//                p.lineTo (currentIndicatedBounds.getBottomRight (). getX (), currentIndicatedBounds.getBottomRight (). getY ());
-//                g.setColour (findColour (Colours::generalBackground));
-//                g.strokePath(p, juce::PathStrokeType (4.0f));
-//
-//                currentIndicatedBounds = boundsRight;
-//                currentIndicatedBounds.reduce(4, 4);
-//                cs = 20.0f;
-//                cs45 = cs * 0.45f;
-//
-//                p.clear ();
-//                p.startNewSubPath (currentIndicatedBounds.getX (), currentIndicatedBounds.getY ());
-//                p.lineTo (currentIndicatedBounds.getTopRight (). getX () - cs, currentIndicatedBounds.getTopRight (). getY ());
-//                //p.cubicTo (x, y + cs45, x + cs45, y, x + cs, y);
-//                p.cubicTo (currentIndicatedBounds.getTopRight (). getX () - cs + cs45, currentIndicatedBounds.getTopRight (). getY (),
-//                           currentIndicatedBounds.getTopRight (). getX (), currentIndicatedBounds.getTopRight (). getY () + cs45,
-//                           currentIndicatedBounds.getTopRight (). getX (), currentIndicatedBounds.getTopRight (). getY () + cs);
-//                p.lineTo (currentIndicatedBounds.getBottomRight (). getX (), currentIndicatedBounds.getBottomRight (). getY ());
-//                g.setColour (findColour (Colours::generalBackground));
-//                g.strokePath(p, juce::PathStrokeType (4.0f));
-//
-//                g.setColour (findColour (Colours::archiveOutline));
-//                g.setColour (juce::Colours::cyan);
-//                g.strokePath (p, juce::PathStrokeType (0.5f));
-                
                 
                 //Drawing shadow on inside
                 currentIndicatedBounds = boundsRight;
                 p.clear ();
-                p.startNewSubPath (currentIndicatedBounds.getX (), currentIndicatedBounds.getY ());
-                p.lineTo (currentIndicatedBounds.getX (), currentIndicatedBounds.getBottom ());
+                p.startNewSubPath (currentIndicatedBounds.getX () - 3, currentIndicatedBounds.getY ());
+                p.lineTo (currentIndicatedBounds.getX () - 3, currentIndicatedBounds.getBottom () + 3);
+                p.lineTo (currentIndicatedBounds.getRight (), currentIndicatedBounds.getBottom () + 3);
                 p.lineTo (currentIndicatedBounds.getRight (), currentIndicatedBounds.getBottom ());
+                p.lineTo (currentIndicatedBounds.getX (), currentIndicatedBounds.getBottom ());
+                p.lineTo (currentIndicatedBounds.getX (), currentIndicatedBounds.getY ());
                 
-                for (int i = 0; i < 6; i++)
-                {
-                    g.setColour (juce::Colour::fromRGBA(0, 0, 0, 40 - std::pow (i, 2)));
-                    //g.strokePath (p, juce::PathStrokeType (2.0f, juce::PathStrokeType::JointStyle::curved, juce::PathStrokeType::EndCapStyle::butt), juce::AffineTransform::translation (i-0.5, 1-i) );
-                }
+                auto shadow = juce::DropShadow (juce::Colour::fromRGBA (0, 0, 0, 200), 7, juce::Point<int> (0, 0));
+//                p.applyTransform (juce::AffineTransform::translation (0.0f, 0.5f));
+
+                shadow.drawForPath (g, p);
                 
                 //Drawing white edge and background for highlighted button
                 
@@ -259,11 +225,50 @@ public:
                 cs45 = 20.0f * 0.45f;
                 
                 p.clear ();
+                currentIndicatedBounds = boundsLeft;
+                p.startNewSubPath(currentIndicatedBounds.getBottomRight ().toFloat ());
+                p.lineTo (currentIndicatedBounds.getTopRight (). toFloat ());
+                p.lineTo (currentIndicatedBounds.getTopLeft (). getX () + cs, currentIndicatedBounds.getTopLeft (). getY ());
+                p.cubicTo (currentIndicatedBounds.getTopLeft (). getX () + cs - cs45, currentIndicatedBounds.getTopLeft (). getY (),
+                           currentIndicatedBounds.getTopLeft (). getX (), currentIndicatedBounds.getTopLeft (). getY () + cs45,
+                           currentIndicatedBounds.getTopLeft (). getX (), currentIndicatedBounds.getTopLeft (). getY () + cs);
+                p.lineTo (currentIndicatedBounds.getBottomLeft (). getX (), currentIndicatedBounds.getBottomLeft (). getY ());
+                
+                
+                g.setColour (findColour (Colours::archiveBackground));
+                g.fillPath (p);
+                
+                g.setColour (findColour (Colours::archiveOutline));
+                g.strokePath (p, juce::PathStrokeType (1.0f, juce::PathStrokeType::JointStyle::beveled, juce::PathStrokeType::EndCapStyle::square));
+                
+                p.clear ();
                 currentIndicatedBounds = boundsRight;
                 p.startNewSubPath (currentIndicatedBounds.getBottomRight ().toFloat ());
                 p.lineTo (currentIndicatedBounds.getBottomLeft ().toFloat ());
+                
+                p.applyTransform (juce::AffineTransform::translation (0.0f, -0.5f));
+                g.setColour (findColour (Colours::archiveOutline));
+                g.strokePath (p, juce::PathStrokeType (1.0f, juce::PathStrokeType::JointStyle::beveled, juce::PathStrokeType::EndCapStyle::square));
+                
+                g.setFont (juce::Font (16.0f));
+                
+                g.setColour (findColour (Colours::whiteText));
+                g.drawText("Play", boundsLeft, juce::Justification::centred);
+                
+                g.setColour (findColour (Colours::darkText));
+                g.drawText("Edit", boundsRight, juce::Justification::centred);
+            }
+        if (sliderPos == x + width) //right option chosen
+            {
+                //Drawing the grey background
                 currentIndicatedBounds = boundsLeft;
-                p.lineTo(currentIndicatedBounds.getBottomRight ().toFloat ());
+                currentIndicatedBounds.removeFromTop (2);
+                currentIndicatedBounds.removeFromLeft (2);
+                auto cs = 20.0f;
+                auto cs45 = 20.0f * 0.45f;
+                
+                p.clear ();
+                p.startNewSubPath(currentIndicatedBounds.getBottomRight ().toFloat ());
                 p.lineTo (currentIndicatedBounds.getTopRight (). toFloat ());
                 p.lineTo (currentIndicatedBounds.getTopLeft (). getX () + cs, currentIndicatedBounds.getTopLeft (). getY ());
                 //p.cubicTo (x, y + cs45, x + cs45, y, x + cs, y);
@@ -272,171 +277,63 @@ public:
                            currentIndicatedBounds.getTopLeft (). getX (), currentIndicatedBounds.getTopLeft (). getY () + cs);
                 p.lineTo (currentIndicatedBounds.getBottomLeft (). getX (), currentIndicatedBounds.getBottomLeft (). getY ());
                 
+                g.setColour (findColour (Colours::archiveLightGrey));
+                g.fillPath (p);
+                
+                g.setColour (findColour (Colours::archiveOutline).interpolatedWith (findColour (Colours::archiveBackground), 0.5f));
+                g.strokePath (p, juce::PathStrokeType (0.5f, juce::PathStrokeType::JointStyle::beveled, juce::PathStrokeType::EndCapStyle::square));
+                
+                //Drawing shadow on inside
+                currentIndicatedBounds = boundsLeft;
+                p.clear ();
+                p.startNewSubPath (currentIndicatedBounds.getRight () + 3, currentIndicatedBounds.getY ());
+                p.lineTo (currentIndicatedBounds.getRight () + 3, currentIndicatedBounds.getBottom () + 3);
+                p.lineTo (currentIndicatedBounds.getX (), currentIndicatedBounds.getBottom () + 3);
+                p.lineTo (currentIndicatedBounds.getX (), currentIndicatedBounds.getBottom ());
+                p.lineTo (currentIndicatedBounds.getRight (), currentIndicatedBounds.getBottom ());
+                p.lineTo (currentIndicatedBounds.getRight (), currentIndicatedBounds.getY ());
+                
+                
+                auto shadow = juce::DropShadow (juce::Colour::fromRGBA (0, 0, 0, 200), 7, juce::Point<int> (0, 0));
+//                p.applyTransform (juce::AffineTransform::translation (0.0f, 0.5f));
+                shadow.drawForPath (g, p);
+                
+                
+                //Drawing white edge and background for highlighted button
+                cs = 20.0f;
+                cs45 = 20.0f * 0.45f;
+                
+                p.clear ();
+                currentIndicatedBounds = boundsRight;
+                p.startNewSubPath (currentIndicatedBounds.getBottomLeft ().toFloat ());
+                p.lineTo (currentIndicatedBounds.getTopLeft (). toFloat ());
+                p.lineTo (currentIndicatedBounds.getTopRight (). getX () - cs, currentIndicatedBounds.getTopLeft (). getY ());
+                p.cubicTo (currentIndicatedBounds.getTopRight (). getX () - cs + cs45, currentIndicatedBounds.getTopRight (). getY (),
+                           currentIndicatedBounds.getTopRight (). getX (), currentIndicatedBounds.getTopRight (). getY () + cs45,
+                           currentIndicatedBounds.getTopRight (). getX (), currentIndicatedBounds.getTopRight (). getY () + cs);
+                p.lineTo (currentIndicatedBounds.getBottomRight (). getX (), currentIndicatedBounds.getBottomRight (). getY ());
+                
                 g.setColour (findColour (Colours::archiveBackground));
                 g.fillPath (p);
                 
                 g.setColour (findColour (Colours::archiveOutline));
-                g.strokePath (p, juce::PathStrokeType (0.5f));
+                g.strokePath (p, juce::PathStrokeType (1.0f, juce::PathStrokeType::JointStyle::beveled, juce::PathStrokeType::EndCapStyle::square));
                 
+                p.clear ();
+                currentIndicatedBounds = boundsLeft;
+                p.startNewSubPath (currentIndicatedBounds.getBottomLeft ().toFloat ());
+                p.lineTo (currentIndicatedBounds.getBottomRight ().toFloat ());
+                p.applyTransform (juce::AffineTransform::translation (0.0f, -0.5f));
+                g.setColour (findColour (Colours::archiveOutline));
+                g.strokePath (p, juce::PathStrokeType (1.0f, juce::PathStrokeType::JointStyle::beveled, juce::PathStrokeType::EndCapStyle::square));
                 
-//                juce::Colour greyTone = findColour (Colours::archiveBackground);
-//                juce::Colour whiteTone = greyTone.interpolatedWith(juce::Colours::white, 0.2f);
-//                juce::Colour transparent = juce::Colours::white.withAlpha(0.0f);
-//                g.setGradientFill (juce::ColourGradient (transparent,
-//                                                         currentIndicatedBounds.getX () + currentIndicatedBounds.getHeight () / 3,
-//                                                         currentIndicatedBounds.getY () + currentIndicatedBounds.getHeight () / 2,
-//                                                         whiteTone,
-//                                                         currentIndicatedBounds.getX (),
-//                                                         currentIndicatedBounds.getY (),
-//                                                         false));
-//                g.strokePath (p, juce::PathStrokeType (1.0f));
-                //g.strokePath(p, juce::PathStrokeType (4.0f));
-                
-                
-                
-                
-                //Drawing white ceiling for main component
-//                currentIndicatedBounds = boundsRight;
-//                whiteTone = greyTone.interpolatedWith(juce::Colours::white, 0.7f);
-//                p.clear ();
-//                p.startNewSubPath (currentIndicatedBounds.getX (), currentIndicatedBounds.getBottom ());
-//                p.lineTo (currentIndicatedBounds.getRight (), currentIndicatedBounds.getBottom ());
-//                g.setGradientFill (juce::ColourGradient (greyTone,
-//                                                         currentIndicatedBounds.getX (),
-//                                                         currentIndicatedBounds.getBottom (),
-//                                                         whiteTone,
-//                                                         currentIndicatedBounds.getX (),
-//                                                         currentIndicatedBounds.getBottom () - 3,
-//                                                         false));
-//                g.strokePath (p, juce::PathStrokeType (3.0f));
                 
                 g.setFont (juce::Font (16.0f));
-                
-                g.setColour (findColour (Colours::whiteText));
-                g.drawText("Play", boundsLeft, juce::Justification::centred);
-                
-                g.setColour (findColour (Colours::darkText));
-                g.drawText("Edit", boundsRight, juce::Justification::centred);
-                
-            }
-        if (sliderPos == x + width) //right option chosen
-            {
-                //switcheroo here with boundsLeft
-                
-                //Drawing the grey background
-                currentIndicatedBounds = boundsLeft;
-                p.clear ();
-                p.addRoundedRectangle (currentIndicatedBounds, 20.0f);
-                p.addRectangle (currentIndicatedBounds.removeFromRight (20));
-                p.addRectangle (currentIndicatedBounds.removeFromBottom (20));
-                g.setColour (juce::Colours::darkgrey.interpolatedWith (juce::Colours::black, 0.05f));
-                g.fillPath (p);
-                
-                
-                //Drawing offset for button "in behind"
-                currentIndicatedBounds = boundsLeft;
-                auto cs = 20.0f;
-                auto cs45 = 20.0f * 0.45f;
-                
-                p.clear ();
-                p.startNewSubPath (currentIndicatedBounds.getX () + currentIndicatedBounds.getWidth (), currentIndicatedBounds.getY ());
-                p.lineTo (currentIndicatedBounds.getTopLeft (). getX () + cs, currentIndicatedBounds.getTopLeft (). getY ());
-                //p.cubicTo (x, y + cs45, x + cs45, y, x + cs, y);
-                p.cubicTo (currentIndicatedBounds.getTopLeft (). getX () + cs - cs45, currentIndicatedBounds.getTopLeft (). getY (),
-                           currentIndicatedBounds.getTopLeft (). getX (), currentIndicatedBounds.getTopLeft (). getY () + cs45,
-                           currentIndicatedBounds.getTopLeft (). getX (), currentIndicatedBounds.getTopLeft (). getY () + cs);
-                p.lineTo (currentIndicatedBounds.getBottomLeft (). getX (), currentIndicatedBounds.getBottomLeft (). getY ());
-                g.setColour (findColour (Colours::generalBackground));
-                g.strokePath(p, juce::PathStrokeType (4.0f));
-                
-                juce::Colour greyTone = findColour (Colours::archiveBackground);
-                juce::Colour whiteTone = greyTone.interpolatedWith(juce::Colours::white, 0.5f);
-                
-                //Drawing white edge
-                currentIndicatedBounds = boundsRight;
-                p.clear ();
-                p.startNewSubPath (currentIndicatedBounds.getX (), currentIndicatedBounds.getY ());
-                p.lineTo (currentIndicatedBounds.getRight () - 20, currentIndicatedBounds.getY ());
-                
-                greyTone = findColour (Colours::archiveBackground);
-                whiteTone = greyTone.interpolatedWith(juce::Colours::white, 0.2f);
-                
-                g.setGradientFill (juce::ColourGradient (greyTone,
-                                                         currentIndicatedBounds.getX () + 0.035f,
-                                                         currentIndicatedBounds.getY () + 3,
-                                                         whiteTone,
-                                                         currentIndicatedBounds.getX (),
-                                                         currentIndicatedBounds.getY (),
-                                                         false));
-                g.strokePath (p, juce::PathStrokeType (3.0f));
-                
-                p.clear ();
-                p.startNewSubPath (currentIndicatedBounds.getX (), currentIndicatedBounds.getBottom ());
-                p.lineTo (currentIndicatedBounds.getX (), currentIndicatedBounds.getY ());
-                greyTone = findColour (Colours::archiveBackground);
-                whiteTone = greyTone.interpolatedWith(juce::Colours::white, 0.2f);
-                g.setGradientFill (juce::ColourGradient (greyTone,
-                                                         currentIndicatedBounds.getX () + currentIndicatedBounds.getHeight () * 0.8f,
-                                                         currentIndicatedBounds.getY () + currentIndicatedBounds.getHeight () * 0.8f,
-                                                         whiteTone,
-                                                         currentIndicatedBounds.getX (),
-                                                         currentIndicatedBounds.getY (),
-                                                         false));
-                g.strokePath (p, juce::PathStrokeType (1.5f));
-                
-                
-                //Drawing white ceiling for main component
-                greyTone = findColour (Colours::archiveBackground);
-                whiteTone = greyTone.interpolatedWith(juce::Colours::white, 0.7f);
-                currentIndicatedBounds = boundsLeft;
-                p.clear ();
-                p.startNewSubPath (currentIndicatedBounds.getX (), currentIndicatedBounds.getBottom ());
-                p.lineTo (currentIndicatedBounds.getRight (), currentIndicatedBounds.getBottom ());
-                g.setGradientFill (juce::ColourGradient (greyTone,
-                                                         currentIndicatedBounds.getX (),
-                                                         currentIndicatedBounds.getBottom (),
-                                                         whiteTone,
-                                                         currentIndicatedBounds.getX (),
-                                                         currentIndicatedBounds.getBottom () - 3,
-                                                         false));
-                g.strokePath (p, juce::PathStrokeType (3.0f));
-                
-                g.setFont (juce::Font (16.0f));
-                
                 g.setColour (findColour (Colours::whiteText));
                 g.drawText("Edit", boundsRight, juce::Justification::centred);
-                
                 g.setColour (findColour (Colours::darkText));
                 g.drawText("Play", boundsLeft, juce::Justification::centred);
             }
-        
-//        p.clear ();
-//        p.addRoundedRectangle (currentIndicatedBounds, roundedRectangleCornerSize - 2.0f);
-//
-//        g.setColour(juce::Colour::fromRGBA(0, 0, 0, 20));
-//        for (int i = 0; i < 3; i++)
-//        {
-//            g.fillPath (p, juce::AffineTransform::translation (i * 1.5f, i * 1.5f) );
-//        }
-//
-//
-//        g.setColour (juce::Colours::darkgrey);
-//        g.fillPath (p);
-//
-//        greyTone = juce::Colour(0x353130);
-//        g.setGradientFill (juce::ColourGradient (whiteTone.interpolatedWith (greyTone, 0.1f),
-//                                                 currentIndicatedBounds.getX () ,
-//                                                 currentIndicatedBounds.getY () ,
-//                                                 greyTone,
-//                                                 currentIndicatedBounds.getX () + currentIndicatedBounds.getHeight () * currentIndicatedBounds.getHeight () / currentIndicatedBounds.getWidth () * 2.0f,
-//                                                 currentIndicatedBounds.getY () + currentIndicatedBounds.getHeight () * 2.0f,
-//                                                 false));
-//        g.strokePath (p, juce::PathStrokeType (strokePathThickness - 0.5f));
-        
-        
-        
-        
-        
     }
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (OtherLookAndFeel)
 };

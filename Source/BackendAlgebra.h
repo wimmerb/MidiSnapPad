@@ -14,6 +14,7 @@
 #include <xtensor/xview.hpp>
 #include <xtensor/xadapt.hpp>
 #include <xtensor-blas/xlinalg.hpp>
+#include <Eigen/Dense>
 #include "MyTextEditor.h"
 
 class DraggableCursor : public juce::Component
@@ -434,12 +435,11 @@ public:
             aVector.push_back (area->getBoundsInParent (). getCentre (). getY ());
             aVector.push_back (area->getBoundsInParent (). getCentre (). getX () * area->getBoundsInParent (). getCentre (). getY ());
         }
-        
-        std::vector<std::size_t> shape = { 4, 4 };
-        
-        xt::xarray <double> A = xt::adapt (aVector, shape);
+        //TODO HERE
+        Eigen::Matrix<double, 4, 4> Ar (aVector.data ());
+        Ar.transposeInPlace ();
+
         //        produces something similar to the following:
-        //        xt::xarray<double> A
         //        {
         //            {1, x1, y1, x1 * y1},
         //            {1, x2, y2, x2 * y2},
@@ -479,15 +479,19 @@ public:
             double f3 = neighbours [2] ->getRepresentedSnapshotKnobPositions () [i];
             double f4 = neighbours [3] ->getRepresentedSnapshotKnobPositions () [i];
             
-            xt::xarray<double> B
-            {f1, f2, f3, f4};
+            //TODO HERE
+            Eigen::VectorXd Br (4);
+            Br << f1, f2, f3, f4;
             
-            auto v = xt::linalg::solve (A, B);
+            //TODO HERE
+            Eigen::Vector4d vr = Ar.colPivHouseholderQr ().solve (Br);
             
-            double a = v[0];
-            double b = v[1];
-            double c = v[2];
-            double d = v[3];
+            //TODO HERE
+            double a = vr.coeff (0);
+            double b = vr.coeff (1);
+            double c = vr.coeff (2);
+            double d = vr.coeff (3);
+            
             
             double x = cursorField.getBoundsInParent (). getCentre (). getX ();
             double y = cursorField.getBoundsInParent (). getCentre (). getY ();
@@ -683,6 +687,8 @@ public:
             }
         }
         
+        
+        
         try
         {
             throw 20;
@@ -691,7 +697,7 @@ public:
         {
             std::cout << "An exception occurred. Exception Nr. " << e << '\n';
         }
-        return nullptr;
+        return matrixFieldAreas.at (0);
     }
     
     void toggleEdit (bool isInEditMode)

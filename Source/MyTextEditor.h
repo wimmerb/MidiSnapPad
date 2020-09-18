@@ -19,7 +19,7 @@ public:
         setJustification (juce::Justification::centredTop);
         setWantsKeyboardFocus (true);
         setCaretVisible (true);
-        setMultiLine (true);
+        setMultiLine (false);
     }
     void paintOverChildren (juce::Graphics& g) override {}
     void paint (juce::Graphics& g) override
@@ -65,7 +65,6 @@ public:
         
         g.setColour (findColour (OtherLookAndFeel::Colours::whiteText));
         g.setFont (16.0f);
-        
         if (isCentred)
             g.drawText  (name, bounds, juce::Justification::centred);
         else
