@@ -16,7 +16,7 @@ class MidiKnob  : public juce::Component
 public:
     //==============================================================================
     
-    MidiKnob(std::shared_ptr<juce::MidiOutput> midiOutr)
+    MidiKnob(std::shared_ptr<juce::MidiOutput> & midiOutr)
     {
         setWantsKeyboardFocus(true);
         this->midiOut = midiOutr;

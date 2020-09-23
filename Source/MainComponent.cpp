@@ -6,8 +6,6 @@ MainComponent::MainComponent()
     this->setLookAndFeel (&otherLookAndFeel);
 
     addChildComponent (uiOverlay);
-    MyTextEditor * bla = new MyTextEditor();
-    bla->setText ("hallo");
 //    uiOverlay.showTextEditorOverlay( *bla);
     //setOpaque(true);
     openGLContext.setOpenGLVersionRequired (juce::OpenGLContext::openGL3_2);
@@ -51,9 +49,13 @@ MainComponent::MainComponent()
         }
     };
 
-    midiOut = juce::MidiOutput::openDevice (juce::MidiOutput::getDefaultDevice().identifier);
+    midiOut = std::move (juce::MidiOutput::openDevice (juce::MidiOutput::getDefaultDevice().identifier));
+    bla = std::make_shared<juce::String> ("st1");
 
-    metaSettings.reset (new MetaSettingComponent (midiOut));
+    metaSettings.reset (new MetaSettingComponent (midiOut, bla));
+
+    DBG ("name after");
+    DBG (*bla);
     
     for (int i = 0; i < 8; i++)
     {

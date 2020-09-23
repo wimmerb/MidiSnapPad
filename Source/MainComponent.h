@@ -36,7 +36,7 @@ private:
 
     std::shared_ptr<juce::MidiOutput> midiOut;
     std::unique_ptr<MetaSettingComponent> metaSettings;
-
+    std::shared_ptr<juce::String> bla;
     std::vector<MidiKnob * > knobs;
     OtherLookAndFeel otherLookAndFeel;
     MatrixField matrix {};

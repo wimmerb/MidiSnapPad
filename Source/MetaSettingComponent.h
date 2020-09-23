@@ -13,9 +13,16 @@
 class MetaSettingComponent : public juce::Component
 {
 public:
-    MetaSettingComponent (std::shared_ptr<juce::MidiOutput> newMidiOut)
+    MetaSettingComponent (std::shared_ptr<juce::MidiOutput> & newMidiOut, std::shared_ptr<juce::String> & bla)
     {
         this->midiOut = newMidiOut;
+        this->bla = bla;
+        //bla = std::make_shared<juce::String> ("st2");
+        //*bla = juce::String ("st2");
+
+
+        bla = std::make_unique<juce::String> ("st2");
+//        bla = new juce::String ("st2");
 
         addAndMakeVisible (midiOutputTitle);
         addAndMakeVisible (midiOutputList);
@@ -30,10 +37,9 @@ public:
 
         midiOutputList.addItemList (midiOutputNames, 1);
         midiOutputList.onChange = [this] { setMidiOutput (midiOutputList.getSelectedItemIndex()); };
-        DBG ("selectedID");
-        DBG (midiOutputList.getSelectedItemIndex());
         if (midiOutputList.getSelectedId() == 0)
             setMidiOutput (0);
+        setMidiOutput (1);
     }
     
     void paintOverChildren (juce::Graphics& g) override {}
@@ -233,13 +239,11 @@ public:
 
     void setMidiOutput (int index)
     {
-        DBG (index);
         auto list = juce::MidiOutput::getAvailableDevices();
 
         auto newOutput = list[index];
 
-        midiOut = juce::MidiOutput::openDevice (newOutput.identifier);
-        DBG (midiOut->getName());
+        midiOut = std::move (juce::MidiOutput::openDevice (newOutput.identifier));
     }
 
     void resized() override
@@ -255,4 +259,5 @@ private:
     MyText midiOutputTitle {"Midi Out : "};
     juce::ComboBox midiOutputList;
     std::shared_ptr<juce::MidiOutput> midiOut;
+    std::shared_ptr<juce::String> bla;
 };
