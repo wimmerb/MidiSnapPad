@@ -2,8 +2,19 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-    
-    
+
+    this->setLookAndFeel (&otherLookAndFeel);
+
+    addChildComponent (uiOverlay);
+    MyTextEditor * bla = new MyTextEditor();
+    bla->setText ("hallo");
+//    uiOverlay.showTextEditorOverlay( *bla);
+    //setOpaque(true);
+    openGLContext.setOpenGLVersionRequired (juce::OpenGLContext::openGL3_2);
+    openGLContext.setContinuousRepainting (false);
+    openGLContext.setComponentPaintingEnabled(true);
+    openGLContext.attachTo (*this);
+
     matrix.updateKnobs = [&]
     {
         std::vector <double> newValues = matrix.produceNewKnobValues();
@@ -39,59 +50,36 @@ MainComponent::MainComponent()
             i->toggleEdit (isInEditMode);
         }
     };
-    
-    
-    this->setLookAndFeel (&otherLookAndFeel);
-    
-    addAndMakeVisible (midiOutputTitle);
-    
+
     midiOut = juce::MidiOutput::openDevice (juce::MidiOutput::getDefaultDevice().identifier);
+
+    metaSettings.reset (new MetaSettingComponent (midiOut));
     
     for (int i = 0; i < 8; i++)
     {
         pushBackNewKnob();
     }
+
+    auto list = juce::MidiOutput::getAvailableDevices();
+    auto newOutput = list[1];
+    midiOut = juce::MidiOutput::openDevice (newOutput.identifier);
     
+    addAndMakeVisible (*metaSettings);
+
+
+
     setSize (400, 800);
-    addAndMakeVisible (midiOutputList);
-    midiOutputList.setTextWhenNoChoicesAvailable ("No MIDI Inputs Available");
-    midiOutputList.setTextWhenNothingSelected("Please Choose");
-    midiOutputList.setScrollWheelEnabled(true);
-    auto midiOutputs = juce::MidiOutput::getAvailableDevices ();
-    
-    juce::StringArray midiOutputNames;
-    
-    for (auto output : midiOutputs)
-        midiOutputNames.add (output.name);
-    
-    midiOutputList.addItemList (midiOutputNames, 1);
-    midiOutputList.onChange = [this] { setMidiOutput (midiOutputList.getSelectedItemIndex()); };
-    if (midiOutputList.getSelectedId() == 0)
-        setMidiOutput (0);
-    
-    addAndMakeVisible (metaSettings);
-    
-    
-    
-    
     resized();
-    
     editModeToggle->onValueChange ();
 }
 
 
-void MainComponent::setMidiOutput (int index)
-{
-    auto list = juce::MidiOutput::getAvailableDevices();
 
-    auto newOutput = list[index];
-
-    midiOut = juce::MidiOutput::openDevice (newOutput.identifier);
-}
 
 void MainComponent::pushBackNewKnob ()
 {
     MidiKnob * tmp = new MidiKnob (midiOut);
+
     knobs.push_back (tmp);
     addAndMakeVisible (*tmp);
     tmp->onValueManipulated = [&]
@@ -112,6 +100,8 @@ void MainComponent::manipulateMatrixValues ()
 
 MainComponent::~MainComponent()
 {
+    openGLContext.detach();
+
     for (auto i : knobs)
     {
         delete (i);
@@ -174,15 +164,14 @@ void MainComponent::paint (juce::Graphics& g)
 
 void MainComponent::resized ()
 {
+    uiOverlay.setBounds (getBounds ());
     auto area = getLocalBounds (). reduced (8);
     
     //TODO textbox neben midiOutputList bzw. midiOutputList als eigenes Zeichen...
-    auto areaForMidiOutMenu = area.removeFromTop (36).reduced (4);
-    midiOutputTitle.setBounds (areaForMidiOutMenu.removeFromLeft (80));
-    midiOutputList.setBounds (areaForMidiOutMenu);
+
     
     
-    metaSettings.setBounds (area. removeFromTop(110));
+    metaSettings->setBounds (area. removeFromTop(110));
     
     auto background = area;
     background.removeFromTop (60);

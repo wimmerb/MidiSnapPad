@@ -9,11 +9,6 @@
 */
 
 #pragma once
-#include <xtensor/xarray.hpp>
-#include <xtensor/xio.hpp>
-#include <xtensor/xview.hpp>
-#include <xtensor/xadapt.hpp>
-#include <xtensor-blas/xlinalg.hpp>
 #include <Eigen/Dense>
 #include "MyTextEditor.h"
 
@@ -176,10 +171,10 @@ public:
     void setRepresentedSnapshotKnobPositions (std::vector <double> newPositions)
     {
         representedSnapshotKnobPositions = newPositions;
-        for (auto position : representedSnapshotKnobPositions)
-        {
-            std::cout << "jo" << position << std::endl;
-        }
+//        for (auto position : representedSnapshotKnobPositions)
+//        {
+//            std::cout << "jo" << position << std::endl;
+//        }
     }
     
     
@@ -436,8 +431,8 @@ public:
             aVector.push_back (area->getBoundsInParent (). getCentre (). getX () * area->getBoundsInParent (). getCentre (). getY ());
         }
         //TODO HERE
-        Eigen::Matrix<double, 4, 4> Ar (aVector.data ());
-        Ar.transposeInPlace ();
+        Eigen::Matrix<double, 4, 4> A (aVector.data ());
+        A.transposeInPlace ();
 
         //        produces something similar to the following:
         //        {
@@ -448,11 +443,10 @@ public:
         //        };
         
         std::vector <double> newPositions;
-        int nrSpecifiedKnobs = 0;
+        unsigned long nrSpecifiedKnobs = 0;
         for (auto area : neighbours)
         {
-            //TODO
-            int bla = area->getRepresentedSnapshotKnobPositions (). size ();
+            unsigned long bla = area->getRepresentedSnapshotKnobPositions (). size ();
             nrSpecifiedKnobs = std::max (nrSpecifiedKnobs, bla );
 
             //            nrSpecifiedKnobs = std::max (nrSpecifiedKnobs, area->getRepresentedSnapshotKnobPositions (). size () );
@@ -480,17 +474,17 @@ public:
             double f4 = neighbours [3] ->getRepresentedSnapshotKnobPositions () [i];
             
             //TODO HERE
-            Eigen::VectorXd Br (4);
-            Br << f1, f2, f3, f4;
+            Eigen::VectorXd B (4);
+            B << f1, f2, f3, f4;
             
             //TODO HERE
-            Eigen::Vector4d vr = Ar.colPivHouseholderQr ().solve (Br);
+            Eigen::Vector4d v = A.colPivHouseholderQr ().solve (B);
             
             //TODO HERE
-            double a = vr.coeff (0);
-            double b = vr.coeff (1);
-            double c = vr.coeff (2);
-            double d = vr.coeff (3);
+            double a = v.coeff (0);
+            double b = v.coeff (1);
+            double c = v.coeff (2);
+            double d = v.coeff (3);
             
             
             double x = cursorField.getBoundsInParent (). getCentre (). getX ();
@@ -620,9 +614,10 @@ public:
         
         std::vector<std::size_t> shape = { 4, 4 };
         
-        xt::xarray <double> A = xt::adapt (aVector, shape);
+        Eigen::Matrix<double, 4, 4> A (aVector.data ());
+        A.transposeInPlace ();
+        
         //        produces something similar to the following:
-        //        xt::xarray<double> A
         //        {
         //            {1, x1, y1, x1 * y1},
         //            {1, x2, y2, x2 * y2},
@@ -638,6 +633,7 @@ public:
             double f1 = knobValuesAtCurrentPosition [i];
             for (auto area : neighbours)
             {
+                //TODO THIS MIGHT NOT WORK OUT! We are only looking at the knobs defined by the current position, but there might be more depending on neighbours -> find a max first!!
                 while (area->getRepresentedSnapshotKnobPositions ().size () < knobValuesAtCurrentPosition.size ())
                 {
                     area->getRepresentedSnapshotKnobPositions ().push_back (0.0);
@@ -652,15 +648,15 @@ public:
             double f3 = neighbours [1] ->getRepresentedSnapshotKnobPositions () [i];
             double f4 = neighbours [2] ->getRepresentedSnapshotKnobPositions () [i];
             
-            xt::xarray<double> B
-            {f1, f2, f3, f4};
+            Eigen::VectorXd B (4);
+            B << f1, f2, f3, f4;
             
-            auto v = xt::linalg::solve (A, B);
+            Eigen::Vector4d v = A.colPivHouseholderQr ().solve (B);
             
-            double a = v[0];
-            double b = v[1];
-            double c = v[2];
-            double d = v[3];
+            double a = v.coeff (0);
+            double b = v.coeff (1);
+            double c = v.coeff (2);
+            double d = v.coeff (3);
             
             double x = currentArea->getBoundsInParent (). getCentre (). getX ();
             double y = currentArea->getBoundsInParent (). getCentre (). getY ();
@@ -736,7 +732,7 @@ private:
             innerField.addAndMakeVisible(i);
             i->demandCursorMove = [i, this]
             {
-                std::cout << i->getBoundsInParent ().getX () << i->getBoundsInParent ().getY () << std::endl;
+//                std::cout << i->getBoundsInParent ().getX () << i->getBoundsInParent ().getY () << std::endl;
                 cursorField.setBounds ( i->getBoundsInParent () );
                 cursorField.informParent ();
             };

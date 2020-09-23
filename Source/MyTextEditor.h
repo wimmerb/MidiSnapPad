@@ -20,8 +20,10 @@ public:
         setWantsKeyboardFocus (true);
         setCaretVisible (true);
         setMultiLine (false);
+        
     }
     void paintOverChildren (juce::Graphics& g) override {}
+
     void paint (juce::Graphics& g) override
     {
         auto bounds = getLocalBounds ().toFloat ();
@@ -38,6 +40,12 @@ public:
         
         g.fillRect (bounds);
     }
+    
+    void mouseEnter (const juce::MouseEvent &event) override {}
+    void mouseDrag(const juce::MouseEvent &) override {}
+    void mouseMove (const juce::MouseEvent &) override {}
+    void mouseDown (const juce::MouseEvent &) override {}
+    
 private:
 };
 

@@ -6,7 +6,6 @@
   ==============================================================================
 */
 
-//#include <xtensor/xtensor.hpp>
 #include <JuceHeader.h>
 #include "MainComponent.h"
 

@@ -13,7 +13,28 @@
 class MetaSettingComponent : public juce::Component
 {
 public:
-    MetaSettingComponent () {}
+    MetaSettingComponent (std::shared_ptr<juce::MidiOutput> newMidiOut)
+    {
+        this->midiOut = newMidiOut;
+
+        addAndMakeVisible (midiOutputTitle);
+        addAndMakeVisible (midiOutputList);
+        midiOutputList.setTextWhenNoChoicesAvailable ("No MIDI Inputs Available");
+        midiOutputList.setTextWhenNothingSelected("Please Choose");
+        midiOutputList.setScrollWheelEnabled(true);
+
+        auto midiOutputs = juce::MidiOutput::getAvailableDevices ();
+        juce::StringArray midiOutputNames;
+        for (auto output : midiOutputs)
+            midiOutputNames.add (output.name);
+
+        midiOutputList.addItemList (midiOutputNames, 1);
+        midiOutputList.onChange = [this] { setMidiOutput (midiOutputList.getSelectedItemIndex()); };
+        DBG ("selectedID");
+        DBG (midiOutputList.getSelectedItemIndex());
+        if (midiOutputList.getSelectedId() == 0)
+            setMidiOutput (0);
+    }
     
     void paintOverChildren (juce::Graphics& g) override {}
     void paint (juce::Graphics& g) override
@@ -209,7 +230,29 @@ public:
         std::cout << "hello" << std::endl;
         
     }
+
+    void setMidiOutput (int index)
+    {
+        DBG (index);
+        auto list = juce::MidiOutput::getAvailableDevices();
+
+        auto newOutput = list[index];
+
+        midiOut = juce::MidiOutput::openDevice (newOutput.identifier);
+        DBG (midiOut->getName());
+    }
+
+    void resized() override
+    {
+        auto area = getLocalBounds (). reduced (8);
+        auto areaForMidiOutMenu = area.removeFromTop (36).reduced (4);
+        midiOutputTitle.setBounds (areaForMidiOutMenu.removeFromLeft (80));
+        midiOutputList.setBounds (areaForMidiOutMenu);
+    }
     
 private:
     juce::String text {"noTextYet"};
+    MyText midiOutputTitle {"Midi Out : "};
+    juce::ComboBox midiOutputList;
+    std::shared_ptr<juce::MidiOutput> midiOut;
 };

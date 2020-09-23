@@ -18,6 +18,7 @@ public:
     
     MidiKnob(std::shared_ptr<juce::MidiOutput> midiOutr)
     {
+        setWantsKeyboardFocus(true);
         this->midiOut = midiOutr;
         
         
@@ -37,6 +38,7 @@ public:
         
         rotarySlider->onValueChange = [&]
         {
+            DBG ("onValueChange");
             int value = this->rotarySlider->getValue ();
             int * midiCh = midiChannel.getValue ();
             int * midiNr = midiControlChange.getValue ();
@@ -44,11 +46,20 @@ public:
             if ( midiCh == nullptr or midiNr == nullptr )
                 return;
             auto msg = juce::MidiMessage::controllerEvent (*midiCh, *midiNr, value);
-            this ->midiOut->sendMessageNow (msg);
+            if (this->midiOut == nullptr)
+            {
+                DBG ("isNull");
+            }
+            else
+            {
+                this ->midiOut->sendMessageNow (msg);
+                DBG (this->midiOut->getName());
+            }
             std::cout << "ValueChanged" << std::endl;
         };
         rotarySlider->onDragEnd = [&]
         {
+            DBG ("onDragEnd");
             onValueManipulated ();
         };
         
@@ -62,14 +73,8 @@ public:
     
     void paint (juce::Graphics& g) override
     {
-//        if (!isInEditMode)
-//            return;
-//        auto bounds = getLocalBounds ().toFloat ();
-//        g.setColour (juce::Colours::pink.withAlpha (0.3f));
-        //g.fillRect (bounds);
         auto bounds = getLocalBounds ().toFloat ();
         g.setColour (juce::Colour::fromRGB (90, 90, 90));
-        //g.drawRoundedRectangle(bounds, 20.0f, 0.5f);
     }
     
     void resized() override

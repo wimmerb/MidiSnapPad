@@ -1,12 +1,14 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "UIOverlayServer.h"
 #include "OtherLookAndFeel.h"
 #include "ScrollableNumber.h"
 #include "MidiKnob.h"
 #include "BackendAlgebra.h"
 #include "MyText.h"
 #include "MetaSettingComponent.h"
+
 
 //==============================================================================
 /*
@@ -23,7 +25,6 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-    void setMidiOutput (int index);
     void pushBackNewKnob ();
 
 private:
@@ -32,15 +33,18 @@ private:
     void manipulateMatrixValues ();
     
     
-    MetaSettingComponent metaSettings;
+
     std::shared_ptr<juce::MidiOutput> midiOut;
-    MyText midiOutputTitle {"Midi Out : "};
-    juce::ComboBox midiOutputList;
+    std::unique_ptr<MetaSettingComponent> metaSettings;
+
     std::vector<MidiKnob * > knobs;
     OtherLookAndFeel otherLookAndFeel;
     MatrixField matrix {};
+    UIOverlayServer uiOverlay {};
     juce::Slider * editModeToggle;
     juce::Rectangle<int> backgroundArea;
+
+    juce::OpenGLContext openGLContext;
     
     
     
