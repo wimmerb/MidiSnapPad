@@ -16,10 +16,10 @@ class MidiKnob  : public juce::Component
 public:
     //==============================================================================
     
-    MidiKnob(std::shared_ptr<juce::MidiOutput> & midiOutr)
+    MidiKnob(std::unique_ptr<juce::MidiOutput> & midiOutr, UIOverlayServer & uiOverlayServer) : midiOut (midiOutr)
     {
         setWantsKeyboardFocus(true);
-        this->midiOut = midiOutr;
+        //this->midiOut = midiOutr;
         
         
         addChildComponent (&midiChannel);
@@ -33,6 +33,10 @@ public:
         
         
         sliderTitle.setText ("param");
+        sliderTitle.callForUIOverlay = [&]
+        {
+            uiOverlayServer.showTextEditorOverlay(sliderTitle);
+        };
         
         addChildComponent (sliderTitle);
         
@@ -54,6 +58,7 @@ public:
             {
                 this ->midiOut->sendMessageNow (msg);
                 DBG (this->midiOut->getName());
+                DBG (this->midiOut->getDeviceInfo().name);
             }
             std::cout << "ValueChanged" << std::endl;
         };
@@ -125,7 +130,7 @@ private:
     //==============================================================================
     // Your private member variables go here...
     juce::Slider * rotarySlider;
-    std::shared_ptr<juce::MidiOutput> midiOut;
+    std::unique_ptr<juce::MidiOutput> & midiOut;
     ScrollableNumber midiChannel {1, 16, 1, "Ch"};
     ScrollableNumber midiControlChange {0, 127, nr, "Nr"};
     

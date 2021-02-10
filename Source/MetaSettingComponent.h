@@ -13,19 +13,10 @@
 class MetaSettingComponent : public juce::Component
 {
 public:
-    MetaSettingComponent (std::shared_ptr<juce::MidiOutput> & newMidiOut, std::shared_ptr<juce::String> & bla)
+    MetaSettingComponent (std::unique_ptr<juce::MidiOutput> & newMidiOut) : midiOut (newMidiOut)
     {
-        this->midiOut = newMidiOut;
-        this->bla = bla;
-        //bla = std::make_shared<juce::String> ("st2");
-        //*bla = juce::String ("st2");
-
-
-        bla = std::make_unique<juce::String> ("st2");
-//        bla = new juce::String ("st2");
-
-        addAndMakeVisible (midiOutputTitle);
-        addAndMakeVisible (midiOutputList);
+        addChildComponent(midiOutputTitle);
+        addChildComponent (midiOutputList);
         midiOutputList.setTextWhenNoChoicesAvailable ("No MIDI Inputs Available");
         midiOutputList.setTextWhenNothingSelected("Please Choose");
         midiOutputList.setScrollWheelEnabled(true);
@@ -221,19 +212,21 @@ public:
             16,65,108,159,156,104,66,141,209,13,65,108,96,249,104,66,181,210,10,65,108,246,40,105,66,184,30,9,65,108,246,40,105,66,184,30,9,65,99,109,0,0,84,66,113,61,42,65,98,236,81,86,66,144,194,49,65,0,0,91,66,205,204,28,65,102,102,94,66,185,30,1,65,98,51,51,
             97,66,247,40,212,64,0,0,98,66,247,40,164,64,51,51,96,66,165,112,157,64,98,102,102,94,66,83,184,150,64,61,10,90,66,51,51,179,64,215,163,86,66,0,0,224,64,108,51,51,84,66,0,0,0,65,98,102,102,82,66,102,102,18,65,61,10,82,66,20,174,35,65,0,0,84,66,113,61,
             42,65,99,101,0,0 };
-        banner.loadPathFromData(pathData, sizeof (pathData));
-        
-        
-        
-        bounds = bounds. reduced (20). toFloat ();
-        banner.applyTransform (banner.getTransformToScaleToFit(bounds.toFloat (), true));
-        
-        auto shadow = juce::DropShadow (juce::Colour::fromRGBA (0, 0, 0, 200), 7, juce::Point<int> (1, 1));
-        shadow.drawForPath (g, banner);
-        
-        g.setColour (getLookAndFeel (). findColour (OtherLookAndFeel::Colours::whiteText));
-        g.fillPath(banner);
-        std::cout << "hello" << std::endl;
+
+        if (!isInEditMode)
+        {
+            banner.loadPathFromData(pathData, sizeof (pathData));
+
+            bounds = bounds. reduced (20). toFloat ();
+            banner.applyTransform (banner.getTransformToScaleToFit(bounds.toFloat (), true));
+
+            auto shadow = juce::DropShadow (juce::Colour::fromRGBA (0, 0, 0, 200), 7, juce::Point<int> (1, 1));
+            shadow.drawForPath (g, banner);
+
+            g.setColour (getLookAndFeel (). findColour (OtherLookAndFeel::Colours::whiteText));
+            g.fillPath(banner);
+        }
+
         
     }
 
@@ -243,7 +236,7 @@ public:
 
         auto newOutput = list[index];
 
-        midiOut = std::move (juce::MidiOutput::openDevice (newOutput.identifier));
+        midiOut = juce::MidiOutput::openDevice (newOutput.identifier);
     }
 
     void resized() override
@@ -253,11 +246,19 @@ public:
         midiOutputTitle.setBounds (areaForMidiOutMenu.removeFromLeft (80));
         midiOutputList.setBounds (areaForMidiOutMenu);
     }
+
+    void toggleEdit (bool isInEditMode)
+    {
+        midiOutputTitle.setVisible(isInEditMode);
+        midiOutputList.setVisible(isInEditMode);
+        this->isInEditMode = isInEditMode;
+        repaint ();
+    }
     
 private:
     juce::String text {"noTextYet"};
     MyText midiOutputTitle {"Midi Out : "};
     juce::ComboBox midiOutputList;
-    std::shared_ptr<juce::MidiOutput> midiOut;
-    std::shared_ptr<juce::String> bla;
+    std::unique_ptr<juce::MidiOutput> & midiOut;
+    bool isInEditMode = false;
 };

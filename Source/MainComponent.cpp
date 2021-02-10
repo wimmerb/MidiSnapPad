@@ -2,16 +2,23 @@
 //==============================================================================
 MainComponent::MainComponent()
 {
-
+    getAllSystemInfo();
     this->setLookAndFeel (&otherLookAndFeel);
 
+//    TODO MAKE USE OF THE SELECTOR OVERLAY
+//    juce::StringArray bla;
+//    bla.add("jo");
+//    bla.add("man");
+//    bla.add ("jahter");
+//    uiOverlay.showSelectorOverlay(bla, 0, 1);
+
     addChildComponent (uiOverlay);
-//    uiOverlay.showTextEditorOverlay( *bla);
-    //setOpaque(true);
+    #if !JUCE_IOS
     openGLContext.setOpenGLVersionRequired (juce::OpenGLContext::openGL3_2);
     openGLContext.setContinuousRepainting (false);
     openGLContext.setComponentPaintingEnabled(true);
     openGLContext.attachTo (*this);
+    #endif
 
     matrix.updateKnobs = [&]
     {
@@ -47,15 +54,12 @@ MainComponent::MainComponent()
         {
             i->toggleEdit (isInEditMode);
         }
+        metaSettings->toggleEdit(isInEditMode);
     };
 
     midiOut = std::move (juce::MidiOutput::openDevice (juce::MidiOutput::getDefaultDevice().identifier));
-    bla = std::make_shared<juce::String> ("st1");
 
-    metaSettings.reset (new MetaSettingComponent (midiOut, bla));
-
-    DBG ("name after");
-    DBG (*bla);
+    metaSettings = std::make_unique<MetaSettingComponent> (midiOut);
     
     for (int i = 0; i < 8; i++)
     {
@@ -70,7 +74,7 @@ MainComponent::MainComponent()
 
 
 
-    setSize (400, 800);
+    setSize (436, 800);
     resized();
     editModeToggle->onValueChange ();
 }
@@ -80,7 +84,7 @@ MainComponent::MainComponent()
 
 void MainComponent::pushBackNewKnob ()
 {
-    MidiKnob * tmp = new MidiKnob (midiOut);
+    MidiKnob * tmp = new MidiKnob (midiOut, uiOverlay);
 
     knobs.push_back (tmp);
     addAndMakeVisible (*tmp);
@@ -102,7 +106,9 @@ void MainComponent::manipulateMatrixValues ()
 
 MainComponent::~MainComponent()
 {
+    #if !JUCE_IOS
     openGLContext.detach();
+    #endif
 
     for (auto i : knobs)
     {
@@ -120,7 +126,6 @@ MainComponent::~MainComponent()
 //==============================================================================
 void MainComponent::paint (juce::Graphics& g)
 {
-    
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel ().findColour (OtherLookAndFeel::Colours::generalBackground));
     

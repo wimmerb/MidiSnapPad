@@ -10,6 +10,7 @@
 
 #pragma once
 
+
 class MyTextEditorEditPart : public juce::TextEditor
 {
 public:
@@ -44,10 +45,17 @@ public:
     void mouseEnter (const juce::MouseEvent &event) override {}
     void mouseDrag(const juce::MouseEvent &) override {}
     void mouseMove (const juce::MouseEvent &) override {}
-    void mouseDown (const juce::MouseEvent &) override {}
+    void mouseDown(const juce::MouseEvent &event) override
+    {
+        DBG ("CLICKEd");
+        alertParent ();
+    }
+
+    std::function <void ()> alertParent;
     
 private:
 };
+
 
 class MyTextEditor : public juce::Component
 {
@@ -55,6 +63,10 @@ public:
     
     MyTextEditor (bool isCentred)
     {
+        editor.alertParent = [&]
+                {
+                    callForUIOverlay ();
+                };
         this->isCentred = isCentred;
         addChildComponent (editor);
         editor.onTextChange = [&]
@@ -99,7 +111,9 @@ public:
         editor.setText (text);
         name = text;
     }
-    
+
+    std::function <void ()> callForUIOverlay;
+
     juce::String name = "name";
     
     bool isInEditMode = false;
@@ -107,7 +121,6 @@ public:
 private:
     MyTextEditorEditPart editor {};
     bool isCentred = true;
-    
 };
 
 

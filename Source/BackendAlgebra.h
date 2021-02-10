@@ -10,7 +10,6 @@
 
 #pragma once
 #include <Eigen/Dense>
-#include "MyTextEditor.h"
 
 class DraggableCursor : public juce::Component
 {
@@ -74,7 +73,6 @@ public:
     
     void parentSizeChanged() override
     {
-        
         auto newBounds = getBoundsInParent();
         
         constrainer.checkBounds (newBounds, getBoundsInParent(),
@@ -106,8 +104,12 @@ template <typename ValueType>
 class MatrixFieldArea : public MyTextEditor
 {
 public:
-    MatrixFieldArea (juce::String param)
+    MatrixFieldArea (juce::String param, UIOverlayServer & uiOverlayServer) : uiOverlayServer (uiOverlayServer)
     {
+        callForUIOverlay = [&]
+                {
+                    uiOverlayServer.showTextEditorOverlay(*this);
+                };
         setText (param);
     }
     
@@ -183,7 +185,9 @@ private:
     //TODO deprecated in my current approach
     juce::Point <ValueType> representedSnapshotPosition;
     std::vector <double> representedSnapshotKnobPositions;
-    
+
+    UIOverlayServer & uiOverlayServer;
+
     bool isSelected = false;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MatrixFieldArea)
@@ -194,7 +198,7 @@ class MatrixField : public juce::Component
 {
 public:
     //==============================================================================
-    MatrixField()
+    MatrixField (UIOverlayServer & uiOverlayServer) : uiOverlayServer (uiOverlayServer)
     {
         addAndMakeVisible (innerField);
         
@@ -719,7 +723,7 @@ private:
             int nrMissingAreas = nrRows * nrColumns - (int) matrixFieldAreas.size ();
             for (int i = 0; i < nrMissingAreas; i++)
             {
-                MatrixFieldArea<int> * temp = new MatrixFieldArea<int> ("new mode");
+                MatrixFieldArea<int> * temp = new MatrixFieldArea<int> ("new mode", uiOverlayServer);
                 
                 
                 matrixFieldAreas.push_back (temp);
@@ -778,6 +782,8 @@ private:
             }
         }
     }
+
+    UIOverlayServer & uiOverlayServer;
     
     Component innerField; //innerField is needed to restrict our draggableCursor correctly, it is also where the MatrixFieldAreas lie within
     
