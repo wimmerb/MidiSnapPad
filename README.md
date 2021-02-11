@@ -18,7 +18,8 @@ State 1|State 2|Interpolated
 The columns **State 1** and **State 2** show the selector perfectly aligned to specific states ("snapshots"). The **Interpolated** column give an example of how we can smoothly transition between 2 "snapshots": Look for "Reverb" and "Detune" parameters. Note that the selector is not perfectly aligned and the parameters (e.g.  "Sustain") are influenced by the left neighbouring states.
 
 
-## JUCE
+## Build Instructions
 
 This Midi tool is intended to become a cross-platform application for iOS, Android and MacOS, therefore
-MidiSnapPad is built with the cross-platform framework [JUCE](https://juce.com/).
+MidiSnapPad is built with the cross-platform framework [JUCE](https://juce.com/). You can build this project using the [Projucer](https://juce.com/discover/projucer) and [JUCE v6.0.7](https://github.com/juce-framework/JUCE/releases/tag/6.0.7).
+
