@@ -15,7 +15,7 @@ State 1|State 2|Interpolated
 -------------------------|-------------------------|-------------------------
 ![Alt text](/Screenshots/screen_dry.png?raw=true "Optional Title") | ![Alt text](/Screenshots/screen_wet.png?raw=true "Optional Title") | ![Alt text](/Screenshots/screen_interp.png?raw=true "Optional Title")
 
-The columns **State 1** and **State 2** show the selector perfectly aligned to specific states ("snapshots"). The **Interpolated** column give an example of how we can smoothly transition between 2 "snapshots": Look for "Reverb" and "Detune" parameters. Note that the selector is not perfectly aligned and the parameters (e.g.  "Sustain") are influenced by the left neighbouring states.
+The columns **State 1** and **State 2** show the selector perfectly aligned to specific states ("snapshots"). The **Interpolated** column gives an example of how we can smoothly transition between 2 "snapshots": Look for the "Reverb" and "Detune" parameters. Note that the selector is not perfectly aligned and the parameters (e.g.  "Sustain") are influenced by the states neighbouring on the left.
 
 
 ## Build Instructions
